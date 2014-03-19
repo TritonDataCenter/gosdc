@@ -223,7 +223,7 @@ func (s *LocalTests) TestListPackages(c *gc.C) {
 		c.Check(pkg.Disk, gc.FitsTypeOf, int(0))
 		c.Check(pkg.Swap, gc.FitsTypeOf, int(0))
 		c.Check(pkg.VCPUs, gc.FitsTypeOf, int(0))
-		c.Check(pkg.Default, gc.FitsTypeOf, string(""))
+		c.Check(pkg.Default, gc.FitsTypeOf, bool(false))
 		c.Check(pkg.Id, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Version, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Description, gc.FitsTypeOf, string(""))
@@ -243,7 +243,7 @@ func (s *LocalTests) TestListPackagesWithFilter(c *gc.C) {
 		c.Check(pkg.Disk, gc.FitsTypeOf, int(0))
 		c.Check(pkg.Swap, gc.FitsTypeOf, int(0))
 		c.Check(pkg.VCPUs, gc.FitsTypeOf, int(0))
-		c.Check(pkg.Default, gc.FitsTypeOf, string(""))
+		c.Check(pkg.Default, gc.FitsTypeOf, bool(false))
 		c.Check(pkg.Id, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Version, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Description, gc.FitsTypeOf, string(""))
@@ -261,7 +261,7 @@ func (s *LocalTests) TestGetPackageFromName(c *gc.C) {
 		Disk:    16384,
 		Swap:    2048,
 		VCPUs:   1,
-		Default: "true",
+		Default: true,
 		Id:      "11223344-1212-abab-3434-aabbccddeeff",
 		Version: "1.0.2",
 	})
@@ -277,7 +277,7 @@ func (s *LocalTests) TestGetPackageFromId(c *gc.C) {
 		Disk:    16384,
 		Swap:    2048,
 		VCPUs:   1,
-		Default: "true",
+		Default: true,
 		Id:      "11223344-1212-abab-3434-aabbccddeeff",
 		Version: "1.0.2",
 	})

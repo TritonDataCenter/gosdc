@@ -202,7 +202,7 @@ func (s *LiveTests) TestListPackages(c *gc.C) {
 		c.Check(pkg.Disk, gc.FitsTypeOf, int(0))
 		c.Check(pkg.Swap, gc.FitsTypeOf, int(0))
 		c.Check(pkg.VCPUs, gc.FitsTypeOf, int(0))
-		c.Check(pkg.Default, gc.FitsTypeOf, string(""))
+		c.Check(pkg.Default, gc.FitsTypeOf, bool(false))
 		c.Check(pkg.Id, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Version, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Description, gc.FitsTypeOf, string(""))
@@ -222,7 +222,7 @@ func (s *LiveTests) TestListPackagesWithFilter(c *gc.C) {
 		c.Check(pkg.Disk, gc.FitsTypeOf, int(0))
 		c.Check(pkg.Swap, gc.FitsTypeOf, int(0))
 		c.Check(pkg.VCPUs, gc.FitsTypeOf, int(0))
-		c.Check(pkg.Default, gc.FitsTypeOf, string(""))
+		c.Check(pkg.Default, gc.FitsTypeOf, bool(false))
 		c.Check(pkg.Id, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Version, gc.FitsTypeOf, string(""))
 		c.Check(pkg.Description, gc.FitsTypeOf, string(""))
@@ -240,7 +240,7 @@ func (s *LiveTests) TestGetPackageFromName(c *gc.C) {
 		Disk:        33792,
 		Swap:        2048,
 		VCPUs:       0,
-		Default:     "false",
+		Default:     false,
 		Id:          packageId,
 		Version:     "1.0.0",
 		Description: "Standard 1 GB RAM 0.25 vCPU and bursting 33 GB Disk",
@@ -258,7 +258,7 @@ func (s *LiveTests) TestGetPackageFromId(c *gc.C) {
 		Disk:        33792,
 		Swap:        2048,
 		VCPUs:       0,
-		Default:     "false",
+		Default:     false,
 		Id:          packageId,
 		Version:     "1.0.0",
 		Description: "Standard 1 GB RAM 0.25 vCPU and bursting 33 GB Disk",

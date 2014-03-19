@@ -221,7 +221,7 @@ type Package struct {
 	Disk        int    // Disk space available (in Gb)
 	Swap        int    // Swap memory available (in Mb)
 	VCPUs       int    // Number of VCPUs for the package
-	Default     string // Indicates whether this is the default package in the datacenter
+	Default     bool   // Indicates whether this is the default package in the datacenter
 	Id          string // Unique identifier for the package
 	Version     string // Version for the package
 	Group       string // Group this package belongs to
