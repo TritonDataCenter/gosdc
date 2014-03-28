@@ -10,6 +10,7 @@
 package cloudapi_test
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,14 +25,17 @@ import (
 	"github.com/joyent/gosign/auth"
 )
 
-var localKeyFile string
+var privateKey []byte
 
 func registerLocalTests(keyName string) {
+	var localKeyFile string
 	if keyName == "" {
 		localKeyFile = os.Getenv("HOME") + "/.ssh/id_rsa"
 	} else {
 		localKeyFile = keyName
 	}
+	privateKey, _ = ioutil.ReadFile(localKeyFile)
+
 	gc.Suite(&LocalTests{})
 }
 
@@ -53,7 +57,7 @@ func (s *LocalTests) SetUpSuite(c *gc.C) {
 	s.Server.Config.Handler = s.Mux
 
 	// Set up a Joyent CloudAPI service.
-	authentication := auth.Auth{User: "localtest", KeyFile: localKeyFile, Algorithm: "rsa-sha256"}
+	authentication := auth.Auth{User: "localtest", PrivateKey: string(privateKey), Algorithm: "rsa-sha256"}
 
 	s.creds = &auth.Credentials{
 		UserAuthentication: authentication,

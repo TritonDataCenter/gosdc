@@ -419,7 +419,7 @@ func (s *CloudAPIHTTPSuite) TestGetPackage(c *gc.C) {
 	c.Assert(expected.Disk, gc.Equals, 16384)
 	c.Assert(expected.Swap, gc.Equals, 2048)
 	c.Assert(expected.VCPUs, gc.Equals, 1)
-	c.Assert(expected.Default, gc.Equals, "true")
+	c.Assert(expected.Default, gc.Equals, true)
 	c.Assert(expected.Id, gc.Equals, "11223344-1212-abab-3434-aabbccddeeff")
 	c.Assert(expected.Version, gc.Equals, "1.0.2")
 }
