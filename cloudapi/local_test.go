@@ -57,7 +57,8 @@ func (s *LocalTests) SetUpSuite(c *gc.C) {
 	s.Server.Config.Handler = s.Mux
 
 	// Set up a Joyent CloudAPI service.
-	authentication := auth.Auth{User: "localtest", PrivateKey: string(privateKey), Algorithm: "rsa-sha256"}
+	authentication, err := auth.NewAuth("localtest", string(privateKey), "rsa-sha256")
+	c.Assert(err, gc.IsNil)
 
 	s.creds = &auth.Credentials{
 		UserAuthentication: authentication,
