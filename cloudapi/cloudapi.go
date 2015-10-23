@@ -20,6 +20,7 @@ import (
 	"github.com/joyent/gocommon/errors"
 	jh "github.com/joyent/gocommon/http"
 	"github.com/juju/loggo"
+	"strings"
 )
 
 const (
@@ -480,8 +481,8 @@ type CreateMachineOpts struct {
 	Package         string            `json:"package"`          // Name of the package to use on provisioning
 	Image           string            `json:"image"`            // The image UUID
 	Networks        []string          `json:"networks"`         // Desired networks IDs
-	Metadata        map[string]string `json:"metadata"`         // An arbitrary set of metadata key/value pairs can be set at provision time
-	Tags            map[string]string `json:"tags"`             // An arbitrary set of tags can be set at provision time
+	Metadata        map[string]string `json:"-"`                // An arbitrary set of metadata key/value pairs can be set at provision time
+	Tags            map[string]string `json:"-"`                // An arbitrary set of tags can be set at provision time
 	FirewallEnabled bool              `json:"firewall_enabled"` // Completely enable or disable firewall for this machine (new in API version 7.0)
 }
 
@@ -535,12 +536,18 @@ func (opts CreateMachineOpts) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	for k, v := range opts.Tags {
+		if !strings.HasPrefix(k, "tag.") {
+			k = "tag." + k
+		}
 		data, err = appendJSON(data, k, v)
 		if err != nil {
 			return nil, err
 		}
 	}
 	for k, v := range opts.Metadata {
+		if !strings.HasPrefix(k, "metadata.") {
+			k = "metadata." + k
+		}
 		data, err = appendJSON(data, k, v)
 		if err != nil {
 			return nil, err

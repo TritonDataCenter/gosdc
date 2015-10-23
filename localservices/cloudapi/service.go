@@ -462,7 +462,7 @@ func (c *CloudAPI) GetMachine(machineId string) (*cloudapi.Machine, error) {
 	return nil, fmt.Errorf("Machine %s not found", machineId)
 }
 
-func (c *CloudAPI) CreateMachine(name, pkg, image string, metadata, tags map[string]string) (*cloudapi.Machine, error) {
+func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, metadata, tags map[string]string) (*cloudapi.Machine, error) {
 	if err := c.ProcessFunctionHook(c, name, pkg, image); err != nil {
 		return nil, err
 	}
@@ -482,6 +482,16 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, metadata, tags map[str
 		return nil, err
 	}
 
+	mNetworks := []string{}
+	for _, network := range networks {
+		mNetwork, err := c.GetNetwork(network)
+		if err != nil {
+			return nil, err
+		}
+
+		mNetworks = append(mNetworks, mNetwork.Id)
+	}
+
 	publicIP := generatePublicIPAddress()
 
 	newMachine := &cloudapi.Machine{
@@ -498,6 +508,7 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, metadata, tags map[str
 		Metadata:  metadata,
 		Tags:      tags,
 		PrimaryIP: publicIP,
+		Networks:  mNetworks,
 	}
 	c.machines = append(c.machines, newMachine)
 

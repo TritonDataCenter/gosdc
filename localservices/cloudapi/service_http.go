@@ -375,25 +375,50 @@ func (c *CloudAPI) handleMachines(w http.ResponseWriter, r *http.Request) error 
 				name     string
 				pkg      string
 				image    string
-				metadata map[string]string
-				tags     map[string]string
+				networks []string
+				metadata = map[string]string{}
+				tags     = map[string]string{}
 			)
-			opts := &cloudapi.CreateMachineOpts{}
+			opts := map[string]interface{}{}
 			body, errB := ioutil.ReadAll(r.Body)
 			if errB != nil {
 				return errB
 			}
 			if len(body) > 0 {
-				if errJ := json.Unmarshal(body, opts); errJ != nil {
+				if errJ := json.Unmarshal(body, &opts); errJ != nil {
+					fmt.Println(errJ)
 					return errJ
 				}
-				name = opts.Name
-				pkg = opts.Package
-				image = opts.Image
-				metadata = opts.Metadata
-				tags = opts.Tags
+				for k, v := range opts {
+					if v == nil {
+						continue
+					}
+
+					switch k {
+					case "name":
+						name = v.(string)
+					case "package":
+						pkg = v.(string)
+					case "image":
+						image = v.(string)
+					case "networks":
+						networks = []string{}
+						for _, n := range v.([]interface{}) {
+							networks = append(networks, n.(string))
+						}
+					default:
+						if strings.HasPrefix(k, "tag.") {
+							tags[k[4:]] = v.(string)
+							continue
+						}
+						if strings.HasPrefix(k, "metadata.") {
+							metadata[k[9:]] = v.(string)
+							continue
+						}
+					}
+				}
 			}
-			machine, err := c.CreateMachine(name, pkg, image, metadata, tags)
+			machine, err := c.CreateMachine(name, pkg, image, networks, metadata, tags)
 			if err != nil {
 				return err
 			}
