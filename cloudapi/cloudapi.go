@@ -20,6 +20,7 @@ import (
 	"github.com/joyent/gocommon/errors"
 	jh "github.com/joyent/gocommon/http"
 	"github.com/juju/loggo"
+	"strings"
 )
 
 const (
@@ -535,12 +536,18 @@ func (opts CreateMachineOpts) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	for k, v := range opts.Tags {
+		if !strings.HasPrefix(k, "tag.") {
+			k = "tag." + k
+		}
 		data, err = appendJSON(data, k, v)
 		if err != nil {
 			return nil, err
 		}
 	}
 	for k, v := range opts.Metadata {
+		if !strings.HasPrefix(k, "metadata.") {
+			k = "metadata." + k
+		}
 		data, err = appendJSON(data, k, v)
 		if err != nil {
 			return nil, err
