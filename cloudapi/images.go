@@ -72,45 +72,45 @@ func (c *Client) ListImages(filter *Filter) ([]Image, error) {
 
 // GetImage returns the image specified by imageId.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetImage
-func (c *Client) GetImage(imageId string) (*Image, error) {
+func (c *Client) GetImage(imageID string) (*Image, error) {
 	var resp Image
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiImages, imageId),
+		url:    makeURL(apiImages, imageID),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get image with id: %s", imageId)
+		return nil, errors.Newf(err, "failed to get image with id: %s", imageID)
 	}
 	return &resp, nil
 }
 
 // DeleteImage (Beta) Delete the image specified by imageId. Must be image owner to do so.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DeleteImage
-func (c *Client) DeleteImage(imageId string) error {
+func (c *Client) DeleteImage(imageID string) error {
 	req := request{
 		method:         client.DELETE,
-		url:            makeURL(apiImages, imageId),
+		url:            makeURL(apiImages, imageID),
 		expectedStatus: http.StatusNoContent,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to delete image with id: %s", imageId)
+		return errors.Newf(err, "failed to delete image with id: %s", imageID)
 	}
 	return nil
 }
 
 // ExportImage (Beta) Exports an image to the specified Manta path.
 // See API docs: http://apidocs.joyent.com/cloudapi/#ListImages
-func (c *Client) ExportImage(imageId string, opts ExportImageOpts) (*MantaLocation, error) {
+func (c *Client) ExportImage(imageID string, opts ExportImageOpts) (*MantaLocation, error) {
 	var resp MantaLocation
 	req := request{
 		method:   client.POST,
-		url:      fmt.Sprintf("%s/%s?action=%s", apiImages, imageId, actionExport),
+		url:      fmt.Sprintf("%s/%s?action=%s", apiImages, imageID, actionExport),
 		reqValue: opts,
 		resp:     &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to export image %s to %s", imageId, opts.MantaPath)
+		return nil, errors.Newf(err, "failed to export image %s to %s", imageID, opts.MantaPath)
 	}
 	return &resp, nil
 }

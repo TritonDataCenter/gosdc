@@ -122,15 +122,15 @@ func (c *Client) ListInstrumentations() ([]Instrumentation, error) {
 
 // GetInstrumentation retrieves the configuration for the specified instrumentation.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetInstrumentation
-func (c *Client) GetInstrumentation(instrumentationId string) (*Instrumentation, error) {
+func (c *Client) GetInstrumentation(instrumentationID string) (*Instrumentation, error) {
 	var resp Instrumentation
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationId),
+		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationID),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get instrumentation with id %s", instrumentationId)
+		return nil, errors.Newf(err, "failed to get instrumentation with id %s", instrumentationID)
 	}
 	return &resp, nil
 }
@@ -138,30 +138,30 @@ func (c *Client) GetInstrumentation(instrumentationId string) (*Instrumentation,
 // GetInstrumentationValue retrieves the data associated to an instrumentation
 // for a point in time.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetInstrumentationValue
-func (c *Client) GetInstrumentationValue(instrumentationId string) (*InstrumentationValue, error) {
+func (c *Client) GetInstrumentationValue(instrumentationID string) (*InstrumentationValue, error) {
 	var resp InstrumentationValue
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationId, apiInstrumentationsValue, apiInstrumentationsRaw),
+		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationID, apiInstrumentationsValue, apiInstrumentationsRaw),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get value for instrumentation with id %s", instrumentationId)
+		return nil, errors.Newf(err, "failed to get value for instrumentation with id %s", instrumentationID)
 	}
 	return &resp, nil
 }
 
 // GetInstrumentationHeatmap retrieves the specified instrumentation's heatmap.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetInstrumentationHeatmap
-func (c *Client) GetInstrumentationHeatmap(instrumentationId string) (*Heatmap, error) {
+func (c *Client) GetInstrumentationHeatmap(instrumentationID string) (*Heatmap, error) {
 	var resp Heatmap
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationId, apiInstrumentationsValue, apiInstrumentationsHeatmap, apiInstrumentationsImage),
+		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationID, apiInstrumentationsValue, apiInstrumentationsHeatmap, apiInstrumentationsImage),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get heatmap image for instrumentation with id %s", instrumentationId)
+		return nil, errors.Newf(err, "failed to get heatmap image for instrumentation with id %s", instrumentationID)
 	}
 	return &resp, nil
 }
@@ -169,15 +169,15 @@ func (c *Client) GetInstrumentationHeatmap(instrumentationId string) (*Heatmap, 
 // GetInstrumentationHeatmapDetails allows you to retrieve the bucket details
 // for a heatmap.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetInstrumentationHeatmapDetails
-func (c *Client) GetInstrumentationHeatmapDetails(instrumentationId string) (*Heatmap, error) {
+func (c *Client) GetInstrumentationHeatmapDetails(instrumentationID string) (*Heatmap, error) {
 	var resp Heatmap
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationId, apiInstrumentationsValue, apiInstrumentationsHeatmap, apiInstrumentationsDetails),
+		url:    makeURL(apiAnalytics, apiInstrumentations, instrumentationID, apiInstrumentationsValue, apiInstrumentationsHeatmap, apiInstrumentationsDetails),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get heatmap details for instrumentation with id %s", instrumentationId)
+		return nil, errors.Newf(err, "failed to get heatmap details for instrumentation with id %s", instrumentationID)
 	}
 	return &resp, nil
 }
@@ -203,14 +203,14 @@ func (c *Client) CreateInstrumentation(opts CreateInstrumentationOpts) (*Instrum
 
 // DeleteInstrumentation destroys an instrumentation.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DeleteInstrumentation
-func (c *Client) DeleteInstrumentation(instrumentationId string) error {
+func (c *Client) DeleteInstrumentation(instrumentationID string) error {
 	req := request{
 		method:         client.DELETE,
-		url:            makeURL(apiAnalytics, apiInstrumentations, instrumentationId),
+		url:            makeURL(apiAnalytics, apiInstrumentations, instrumentationID),
 		expectedStatus: http.StatusNoContent,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to delete instrumentation with id %s", instrumentationId)
+		return errors.Newf(err, "failed to delete instrumentation with id %s", instrumentationID)
 	}
 	return nil
 }

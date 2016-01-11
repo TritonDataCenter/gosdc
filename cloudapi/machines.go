@@ -171,15 +171,15 @@ func (c *Client) CountMachines() (int, error) {
 
 // GetMachine returns the machine specified by machineId.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetMachine
-func (c *Client) GetMachine(machineId string) (*Machine, error) {
+func (c *Client) GetMachine(machineID string) (*Machine, error) {
 	var resp Machine
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiMachines, machineId),
+		url:    makeURL(apiMachines, machineID),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get machine with id: %s", machineId)
+		return nil, errors.Newf(err, "failed to get machine with id: %s", machineID)
 	}
 	return &resp, nil
 }
@@ -203,42 +203,42 @@ func (c *Client) CreateMachine(opts CreateMachineOpts) (*Machine, error) {
 
 // StopMachine stops a running machine.
 // See API docs: http://apidocs.joyent.com/cloudapi/#StopMachine
-func (c *Client) StopMachine(machineId string) error {
+func (c *Client) StopMachine(machineID string) error {
 	req := request{
 		method:         client.POST,
-		url:            fmt.Sprintf("%s/%s?action=%s", apiMachines, machineId, actionStop),
+		url:            fmt.Sprintf("%s/%s?action=%s", apiMachines, machineID, actionStop),
 		expectedStatus: http.StatusAccepted,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to stop machine with id: %s", machineId)
+		return errors.Newf(err, "failed to stop machine with id: %s", machineID)
 	}
 	return nil
 }
 
 // StartMachine starts a stopped machine.
 // See API docs: http://apidocs.joyent.com/cloudapi/#StartMachine
-func (c *Client) StartMachine(machineId string) error {
+func (c *Client) StartMachine(machineID string) error {
 	req := request{
 		method:         client.POST,
-		url:            fmt.Sprintf("%s/%s?action=%s", apiMachines, machineId, actionStart),
+		url:            fmt.Sprintf("%s/%s?action=%s", apiMachines, machineID, actionStart),
 		expectedStatus: http.StatusAccepted,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to start machine with id: %s", machineId)
+		return errors.Newf(err, "failed to start machine with id: %s", machineID)
 	}
 	return nil
 }
 
 // RebootMachine reboots (stop followed by a start) a machine.
 // See API docs: http://apidocs.joyent.com/cloudapi/#RebootMachine
-func (c *Client) RebootMachine(machineId string) error {
+func (c *Client) RebootMachine(machineID string) error {
 	req := request{
 		method:         client.POST,
-		url:            fmt.Sprintf("%s/%s?action=%s", apiMachines, machineId, actionReboot),
+		url:            fmt.Sprintf("%s/%s?action=%s", apiMachines, machineID, actionReboot),
 		expectedStatus: http.StatusAccepted,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to reboot machine with id: %s", machineId)
+		return errors.Newf(err, "failed to reboot machine with id: %s", machineID)
 	}
 	return nil
 }
@@ -247,42 +247,42 @@ func (c *Client) RebootMachine(machineId string) error {
 // be resized, but only resizing virtual machines to a higher capacity package
 // is supported.
 // See API docs: http://apidocs.joyent.com/cloudapi/#ResizeMachine
-func (c *Client) ResizeMachine(machineId, packageName string) error {
+func (c *Client) ResizeMachine(machineID, packageName string) error {
 	req := request{
 		method:         client.POST,
-		url:            fmt.Sprintf("%s/%s?action=%s&package=%s", apiMachines, machineId, actionResize, packageName),
+		url:            fmt.Sprintf("%s/%s?action=%s&package=%s", apiMachines, machineID, actionResize, packageName),
 		expectedStatus: http.StatusAccepted,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to resize machine with id: %s", machineId)
+		return errors.Newf(err, "failed to resize machine with id: %s", machineID)
 	}
 	return nil
 }
 
 // RenameMachine renames an existing machine.
 // See API docs: http://apidocs.joyent.com/cloudapi/#RenameMachine
-func (c *Client) RenameMachine(machineId, machineName string) error {
+func (c *Client) RenameMachine(machineID, machineName string) error {
 	req := request{
 		method:         client.POST,
-		url:            fmt.Sprintf("%s/%s?action=%s&name=%s", apiMachines, machineId, actionRename, machineName),
+		url:            fmt.Sprintf("%s/%s?action=%s&name=%s", apiMachines, machineID, actionRename, machineName),
 		expectedStatus: http.StatusAccepted,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to rename machine with id: %s", machineId)
+		return errors.Newf(err, "failed to rename machine with id: %s", machineID)
 	}
 	return nil
 }
 
 // DeleteMachine allows you to completely destroy a machine. Machine must be in the 'stopped' state.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DeleteMachine
-func (c *Client) DeleteMachine(machineId string) error {
+func (c *Client) DeleteMachine(machineID string) error {
 	req := request{
 		method:         client.DELETE,
-		url:            makeURL(apiMachines, machineId),
+		url:            makeURL(apiMachines, machineID),
 		expectedStatus: http.StatusNoContent,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to delete machine with id %s", machineId)
+		return errors.Newf(err, "failed to delete machine with id %s", machineID)
 	}
 	return nil
 }
@@ -290,15 +290,15 @@ func (c *Client) DeleteMachine(machineId string) error {
 // MachineAudit provides a list of machine's accomplished actions, (sorted from
 // latest to older one).
 // See API docs: http://apidocs.joyent.com/cloudapi/#MachineAudit
-func (c *Client) MachineAudit(machineId string) ([]AuditAction, error) {
+func (c *Client) MachineAudit(machineID string) ([]AuditAction, error) {
 	var resp []AuditAction
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiMachines, machineId, apiAudit),
+		url:    makeURL(apiMachines, machineID, apiAudit),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get actions for machine with id %s", machineId)
+		return nil, errors.Newf(err, "failed to get actions for machine with id %s", machineID)
 	}
 	return resp, nil
 }

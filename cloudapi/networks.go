@@ -30,15 +30,15 @@ func (c *Client) ListNetworks() ([]Network, error) {
 
 // GetNetwork retrieves an individual network record.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetNetwork
-func (c *Client) GetNetwork(networkId string) (*Network, error) {
+func (c *Client) GetNetwork(networkID string) (*Network, error) {
 	var resp Network
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiNetworks, networkId),
+		url:    makeURL(apiNetworks, networkID),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get network with id %s", networkId)
+		return nil, errors.Newf(err, "failed to get network with id %s", networkID)
 	}
 	return &resp, nil
 }

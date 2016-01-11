@@ -38,15 +38,15 @@ func (c *Client) ListFirewallRules() ([]FirewallRule, error) {
 
 // GetFirewallRule returns the specified firewall rule.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetFirewallRule
-func (c *Client) GetFirewallRule(fwRuleId string) (*FirewallRule, error) {
+func (c *Client) GetFirewallRule(fwRuleID string) (*FirewallRule, error) {
 	var resp FirewallRule
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiFirewallRules, fwRuleId),
+		url:    makeURL(apiFirewallRules, fwRuleID),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get firewall rule with id %s", fwRuleId)
+		return nil, errors.Newf(err, "failed to get firewall rule with id %s", fwRuleID)
 	}
 	return &resp, nil
 }
@@ -70,75 +70,75 @@ func (c *Client) CreateFirewallRule(opts CreateFwRuleOpts) (*FirewallRule, error
 
 // UpdateFirewallRule updates the specified firewall rule.
 // See API docs: http://apidocs.joyent.com/cloudapi/#UpdateFirewallRule
-func (c *Client) UpdateFirewallRule(fwRuleId string, opts CreateFwRuleOpts) (*FirewallRule, error) {
+func (c *Client) UpdateFirewallRule(fwRuleID string, opts CreateFwRuleOpts) (*FirewallRule, error) {
 	var resp FirewallRule
 	req := request{
 		method:   client.POST,
-		url:      makeURL(apiFirewallRules, fwRuleId),
+		url:      makeURL(apiFirewallRules, fwRuleID),
 		reqValue: opts,
 		resp:     &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to update firewall rule with id %s to %s", fwRuleId, opts.Rule)
+		return nil, errors.Newf(err, "failed to update firewall rule with id %s to %s", fwRuleID, opts.Rule)
 	}
 	return &resp, nil
 }
 
 // EnableFirewallRule enables the given firewall rule record if it is disabled.
 // See API docs: http://apidocs.joyent.com/cloudapi/#EnableFirewallRule
-func (c *Client) EnableFirewallRule(fwRuleId string) (*FirewallRule, error) {
+func (c *Client) EnableFirewallRule(fwRuleID string) (*FirewallRule, error) {
 	var resp FirewallRule
 	req := request{
 		method: client.POST,
-		url:    makeURL(apiFirewallRules, fwRuleId, apiFirewallRulesEnable),
+		url:    makeURL(apiFirewallRules, fwRuleID, apiFirewallRulesEnable),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to enable firewall rule with id %s", fwRuleId)
+		return nil, errors.Newf(err, "failed to enable firewall rule with id %s", fwRuleID)
 	}
 	return &resp, nil
 }
 
 // DisableFirewallRule disables the given firewall rule record if it is enabled.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DisableFirewallRule
-func (c *Client) DisableFirewallRule(fwRuleId string) (*FirewallRule, error) {
+func (c *Client) DisableFirewallRule(fwRuleID string) (*FirewallRule, error) {
 	var resp FirewallRule
 	req := request{
 		method: client.POST,
-		url:    makeURL(apiFirewallRules, fwRuleId, apiFirewallRulesDisable),
+		url:    makeURL(apiFirewallRules, fwRuleID, apiFirewallRulesDisable),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to disable firewall rule with id %s", fwRuleId)
+		return nil, errors.Newf(err, "failed to disable firewall rule with id %s", fwRuleID)
 	}
 	return &resp, nil
 }
 
 // DeleteFirewallRule removes the given firewall rule record from all the required account machines.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DeleteFirewallRule
-func (c *Client) DeleteFirewallRule(fwRuleId string) error {
+func (c *Client) DeleteFirewallRule(fwRuleID string) error {
 	req := request{
 		method:         client.DELETE,
-		url:            makeURL(apiFirewallRules, fwRuleId),
+		url:            makeURL(apiFirewallRules, fwRuleID),
 		expectedStatus: http.StatusNoContent,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to delete firewall rule with id %s", fwRuleId)
+		return errors.Newf(err, "failed to delete firewall rule with id %s", fwRuleID)
 	}
 	return nil
 }
 
 // ListFirewallRuleMachines return the list of machines affected by the given firewall rule.
 // See API docs: http://apidocs.joyent.com/cloudapi/#ListFirewallRuleMachines
-func (c *Client) ListFirewallRuleMachines(fwRuleId string) ([]Machine, error) {
+func (c *Client) ListFirewallRuleMachines(fwRuleID string) ([]Machine, error) {
 	var resp []Machine
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiFirewallRules, fwRuleId, apiMachines),
+		url:    makeURL(apiFirewallRules, fwRuleID, apiMachines),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get list of machines affected by firewall rule wit id %s", fwRuleId)
+		return nil, errors.Newf(err, "failed to get list of machines affected by firewall rule wit id %s", fwRuleID)
 	}
 	return resp, nil
 }
