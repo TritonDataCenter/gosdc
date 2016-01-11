@@ -7,6 +7,7 @@
 
 - [gosdc](#gosdc)
     - [Usage](#usage)
+        - [Examples](#examples)
     - [Resources](#resources)
     - [License](#license)
 
