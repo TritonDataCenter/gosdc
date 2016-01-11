@@ -1,9 +1,9 @@
 /*
 Package cloudapi interacts with the Cloud API (http://apidocs.joyent.com/cloudapi/).
 
-Licensed under MPL v2.0
+Licensed under the Mozilla Public License version 2.0
 
-Copyright (c) 2013 Joyent Inc.
+Copyright (c) Joyent Inc.
 */
 package cloudapi
 

@@ -1,10 +1,7 @@
 //
 // gosdc - Go library to interact with the Joyent CloudAPI
 //
-//
-// Copyright (c) 2013 Joyent Inc.
-//
-// Written by Daniele Stroppa <daniele.stroppa@joyent.com>
+// Copyright (c) Joyent Inc.
 //
 
 package cloudapi_test

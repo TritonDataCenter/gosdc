@@ -1,15 +1,14 @@
 /*
-The gosdc package enables Go programs to interact with the Joyent CloudAPI.
+package gosdc enables Go programs to interact with the Joyent CloudAPI.
 
 The gosdc package is structured as follow:
 
 	- gosdc/cloudapi. This package interacts with the Cloud API (http://apidocs.joyent.com/cloudapi/).
 	- gosdc/localservices. This package provides local services to be used for testing.
 
-Licensed under LGPL v3.
+Licensed under the Mozilla Public License version 2.0
 
-Copyright (c) 2013 Joyent Inc.
-Written by Daniele Stroppa <daniele.stroppa@joyent.com>
+Copyright (c) Joyent Inc.
 
 */
 package gosdc

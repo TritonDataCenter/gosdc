@@ -3,9 +3,7 @@
 //
 // CloudAPI double testing service - HTTP API implementation
 //
-// Copyright (c) 2013 Joyent Inc.
-//
-// Written by Daniele Stroppa <daniele.stroppa@joyent.com>
+// Copyright (c) Joyent Inc.
 //
 
 package cloudapi
