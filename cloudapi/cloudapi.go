@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	// The default version of the Cloud API to use
+	// DefaultAPIVersion defines the default version of the Cloud API to use
 	DefaultAPIVersion = "~7.0"
 
 	// CloudAPI URL parts

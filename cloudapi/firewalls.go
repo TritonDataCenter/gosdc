@@ -21,7 +21,7 @@ type CreateFwRuleOpts struct {
 	Rule    string `json:"rule"`    // Firewall rule in the form 'FROM <target a> TO <target b> <action> <protocol> <port>'
 }
 
-// Lists all the firewall rules on record for a specified account.
+// ListFirewallRules lists all the firewall rules on record for a specified account.
 // See API docs: http://apidocs.joyent.com/cloudapi/#ListFirewallRules
 func (c *Client) ListFirewallRules() ([]FirewallRule, error) {
 	var resp []FirewallRule
@@ -36,7 +36,7 @@ func (c *Client) ListFirewallRules() ([]FirewallRule, error) {
 	return resp, nil
 }
 
-// Returns the specified firewall rule.
+// GetFirewallRule returns the specified firewall rule.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetFirewallRule
 func (c *Client) GetFirewallRule(fwRuleId string) (*FirewallRule, error) {
 	var resp FirewallRule
@@ -51,7 +51,7 @@ func (c *Client) GetFirewallRule(fwRuleId string) (*FirewallRule, error) {
 	return &resp, nil
 }
 
-// Creates the firewall rule with the specified options.
+// CreateFirewallRule creates the firewall rule with the specified options.
 // See API docs: http://apidocs.joyent.com/cloudapi/#CreateFirewallRule
 func (c *Client) CreateFirewallRule(opts CreateFwRuleOpts) (*FirewallRule, error) {
 	var resp FirewallRule
@@ -68,7 +68,7 @@ func (c *Client) CreateFirewallRule(opts CreateFwRuleOpts) (*FirewallRule, error
 	return &resp, nil
 }
 
-// Updates the specified firewall rule.
+// UpdateFirewallRule updates the specified firewall rule.
 // See API docs: http://apidocs.joyent.com/cloudapi/#UpdateFirewallRule
 func (c *Client) UpdateFirewallRule(fwRuleId string, opts CreateFwRuleOpts) (*FirewallRule, error) {
 	var resp FirewallRule
@@ -84,7 +84,7 @@ func (c *Client) UpdateFirewallRule(fwRuleId string, opts CreateFwRuleOpts) (*Fi
 	return &resp, nil
 }
 
-// Enables the given firewall rule record if it is disabled.
+// EnableFirewallRule enables the given firewall rule record if it is disabled.
 // See API docs: http://apidocs.joyent.com/cloudapi/#EnableFirewallRule
 func (c *Client) EnableFirewallRule(fwRuleId string) (*FirewallRule, error) {
 	var resp FirewallRule
@@ -99,7 +99,7 @@ func (c *Client) EnableFirewallRule(fwRuleId string) (*FirewallRule, error) {
 	return &resp, nil
 }
 
-// Disables the given firewall rule record if it is enabled.
+// DisableFirewallRule disables the given firewall rule record if it is enabled.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DisableFirewallRule
 func (c *Client) DisableFirewallRule(fwRuleId string) (*FirewallRule, error) {
 	var resp FirewallRule
@@ -114,7 +114,7 @@ func (c *Client) DisableFirewallRule(fwRuleId string) (*FirewallRule, error) {
 	return &resp, nil
 }
 
-// Removes the given firewall rule record from all the required account machines.
+// DeleteFirewallRule removes the given firewall rule record from all the required account machines.
 // See API docs: http://apidocs.joyent.com/cloudapi/#DeleteFirewallRule
 func (c *Client) DeleteFirewallRule(fwRuleId string) error {
 	req := request{
@@ -128,7 +128,7 @@ func (c *Client) DeleteFirewallRule(fwRuleId string) error {
 	return nil
 }
 
-// Return the list of machines affected by the given firewall rule.
+// ListFirewallRuleMachines return the list of machines affected by the given firewall rule.
 // See API docs: http://apidocs.joyent.com/cloudapi/#ListFirewallRuleMachines
 func (c *Client) ListFirewallRuleMachines(fwRuleId string) ([]Machine, error) {
 	var resp []Machine
