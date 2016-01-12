@@ -27,6 +27,7 @@ var (
 	machinesFilters = []string{"type", "name", "image", "state", "memory", "tombstone", "limit", "offset", "credentials"}
 )
 
+// CloudAPI is the API test double
 type CloudAPI struct {
 	localservices.ServiceInstance
 	keys          []cloudapi.Key
@@ -39,6 +40,7 @@ type CloudAPI struct {
 	networks      []cloudapi.Network
 }
 
+// New makes a new *CloudAPI service with the given information
 func New(serviceURL, userAccount string) *CloudAPI {
 	URL, err := url.Parse(serviceURL)
 	if err != nil {
@@ -49,11 +51,13 @@ func New(serviceURL, userAccount string) *CloudAPI {
 		hostname += separator
 	}
 
-	keys := make([]cloudapi.Key, 0)
-	machines := make([]*cloudapi.Machine, 0)
-	machineFw := make(map[string]bool)
-	snapshots := make(map[string][]cloudapi.Snapshot)
-	firewallRules := make([]*cloudapi.FirewallRule, 0)
+	var (
+		keys          []cloudapi.Key
+		machines      []*cloudapi.Machine
+		machineFw     = map[string]bool{}
+		snapshots     = map[string][]cloudapi.Snapshot{}
+		firewallRules []*cloudapi.FirewallRule
+	)
 
 	cloudapiService := &CloudAPI{
 		keys:          keys,
@@ -215,6 +219,8 @@ func contains(list []string, elem string) bool {
 }
 
 // Keys APIs
+
+// ListKeys lists keys in the double
 func (c *CloudAPI) ListKeys() ([]cloudapi.Key, error) {
 	if err := c.ProcessFunctionHook(c); err != nil {
 		return nil, err
@@ -223,6 +229,7 @@ func (c *CloudAPI) ListKeys() ([]cloudapi.Key, error) {
 	return c.keys, nil
 }
 
+// GetKey gets a single key from the double by name
 func (c *CloudAPI) GetKey(keyName string) (*cloudapi.Key, error) {
 	if err := c.ProcessFunctionHook(c, keyName); err != nil {
 		return nil, err
@@ -237,6 +244,7 @@ func (c *CloudAPI) GetKey(keyName string) (*cloudapi.Key, error) {
 	return nil, fmt.Errorf("Key %s not found", keyName)
 }
 
+// CreateKey creates a new key in the double
 func (c *CloudAPI) CreateKey(keyName, key string) (*cloudapi.Key, error) {
 	if err := c.ProcessFunctionHook(c, keyName, key); err != nil {
 		return nil, err
@@ -258,6 +266,7 @@ func (c *CloudAPI) CreateKey(keyName, key string) (*cloudapi.Key, error) {
 	return &newKey, nil
 }
 
+// DeleteKey deletes an existing key from the double
 func (c *CloudAPI) DeleteKey(keyName string) error {
 	if err := c.ProcessFunctionHook(c, keyName); err != nil {
 		return err
@@ -274,6 +283,8 @@ func (c *CloudAPI) DeleteKey(keyName string) error {
 }
 
 // Packages APIs
+
+// ListPackages lists packages in the double
 func (c *CloudAPI) ListPackages(filters map[string]string) ([]cloudapi.Package, error) {
 	if err := c.ProcessFunctionHook(c, filters); err != nil {
 		return nil, err
@@ -324,6 +335,7 @@ func (c *CloudAPI) ListPackages(filters map[string]string) ([]cloudapi.Package, 
 	return availablePackages, nil
 }
 
+// GetPackage gets a single package in the double
 func (c *CloudAPI) GetPackage(packageName string) (*cloudapi.Package, error) {
 	if err := c.ProcessFunctionHook(c, packageName); err != nil {
 		return nil, err
@@ -342,6 +354,8 @@ func (c *CloudAPI) GetPackage(packageName string) (*cloudapi.Package, error) {
 }
 
 // Images APIs
+
+// ListImages returns a list of images in the double
 func (c *CloudAPI) ListImages(filters map[string]string) ([]cloudapi.Image, error) {
 	if err := c.ProcessFunctionHook(c, filters); err != nil {
 		return nil, err
@@ -380,21 +394,24 @@ func (c *CloudAPI) ListImages(filters map[string]string) ([]cloudapi.Image, erro
 	return availableImages, nil
 }
 
-func (c *CloudAPI) GetImage(imageId string) (*cloudapi.Image, error) {
-	if err := c.ProcessFunctionHook(c, imageId); err != nil {
+// GetImage gets a single image by name from the double
+func (c *CloudAPI) GetImage(imageID string) (*cloudapi.Image, error) {
+	if err := c.ProcessFunctionHook(c, imageID); err != nil {
 		return nil, err
 	}
 
 	for _, image := range c.images {
-		if image.Id == imageId {
+		if image.Id == imageID {
 			return &image, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Image %s not found", imageId)
+	return nil, fmt.Errorf("Image %s not found", imageID)
 }
 
 // Machine APIs
+
+// ListMachines returns a list of machines in the double
 func (c *CloudAPI) ListMachines(filters map[string]string) ([]*cloudapi.Machine, error) {
 	if err := c.ProcessFunctionHook(c, filters); err != nil {
 		return nil, err
@@ -438,6 +455,7 @@ func (c *CloudAPI) ListMachines(filters map[string]string) ([]*cloudapi.Machine,
 	return availableMachines, nil
 }
 
+// CountMachines returns a count of machines the double knows about
 func (c *CloudAPI) CountMachines() (int, error) {
 	if err := c.ProcessFunctionHook(c); err != nil {
 		return 0, err
@@ -446,26 +464,28 @@ func (c *CloudAPI) CountMachines() (int, error) {
 	return len(c.machines), nil
 }
 
-func (c *CloudAPI) GetMachine(machineId string) (*cloudapi.Machine, error) {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// GetMachine gets a single machine by ID from the double
+func (c *CloudAPI) GetMachine(machineID string) (*cloudapi.Machine, error) {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return nil, err
 	}
 
 	for _, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			return machine, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Machine %s not found", machineId)
+	return nil, fmt.Errorf("Machine %s not found", machineID)
 }
 
+// CreateMachine creates a new machine in the double. It will be running immediately.
 func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, metadata, tags map[string]string) (*cloudapi.Machine, error) {
 	if err := c.ProcessFunctionHook(c, name, pkg, image); err != nil {
 		return nil, err
 	}
 
-	machineId, err := localservices.NewUUID()
+	machineID, err := localservices.NewUUID()
 	if err != nil {
 		return nil, err
 	}
@@ -493,7 +513,7 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, met
 	publicIP := generatePublicIPAddress()
 
 	newMachine := &cloudapi.Machine{
-		Id:        machineId,
+		Id:        machineID,
 		Name:      name,
 		Type:      mImg.Type,
 		State:     "running",
@@ -513,56 +533,61 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, met
 	return newMachine, nil
 }
 
-func (c *CloudAPI) StopMachine(machineId string) error {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// StopMachine changes a machine's status to "stopped"
+func (c *CloudAPI) StopMachine(machineID string) error {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return err
 	}
 
 	for _, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			machine.State = "stopped"
 			machine.Updated = time.Now().Format("2013-11-26T19:47:13.448Z")
 			return nil
 		}
 	}
 
-	return fmt.Errorf("Machine %s not found", machineId)
+	return fmt.Errorf("Machine %s not found", machineID)
 }
 
-func (c *CloudAPI) StartMachine(machineId string) error {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// StartMachine changes a machine's state to "running"
+func (c *CloudAPI) StartMachine(machineID string) error {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return err
 	}
 
 	for _, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			machine.State = "running"
 			machine.Updated = time.Now().Format("2013-11-26T19:47:13.448Z")
 			return nil
 		}
 	}
 
-	return fmt.Errorf("Machine %s not found", machineId)
+	return fmt.Errorf("Machine %s not found", machineID)
 }
 
-func (c *CloudAPI) RebootMachine(machineId string) error {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// RebootMachine changes a machine's state to "running" and updates Updated
+func (c *CloudAPI) RebootMachine(machineID string) error {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return err
 	}
 
 	for _, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			machine.State = "running"
 			machine.Updated = time.Now().Format("2013-11-26T19:47:13.448Z")
 			return nil
 		}
 	}
 
-	return fmt.Errorf("Machine %s not found", machineId)
+	return fmt.Errorf("Machine %s not found", machineID)
 }
 
-func (c *CloudAPI) ResizeMachine(machineId, packageName string) error {
-	if err := c.ProcessFunctionHook(c, machineId, packageName); err != nil {
+// ResizeMachine changes a machine's package to a new size. Unlike the real API,
+// this method lets you downsize machines.
+func (c *CloudAPI) ResizeMachine(machineID, packageName string) error {
+	if err := c.ProcessFunctionHook(c, machineID, packageName); err != nil {
 		return err
 	}
 
@@ -572,7 +597,7 @@ func (c *CloudAPI) ResizeMachine(machineId, packageName string) error {
 	}
 
 	for _, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			machine.Package = packageName
 			machine.Memory = mPkg.Memory
 			machine.Disk = mPkg.Disk
@@ -581,33 +606,36 @@ func (c *CloudAPI) ResizeMachine(machineId, packageName string) error {
 		}
 	}
 
-	return fmt.Errorf("Machine %s not found", machineId)
+	return fmt.Errorf("Machine %s not found", machineID)
 }
 
-func (c *CloudAPI) RenameMachine(machineId, newName string) error {
-	if err := c.ProcessFunctionHook(c, machineId, newName); err != nil {
+// RenameMachine changes a machine's name
+func (c *CloudAPI) RenameMachine(machineID, newName string) error {
+	if err := c.ProcessFunctionHook(c, machineID, newName); err != nil {
 		return err
 	}
 
 	for _, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			machine.Name = newName
 			machine.Updated = time.Now().Format("2013-11-26T19:47:13.448Z")
 			return nil
 		}
 	}
 
-	return fmt.Errorf("Machine %s not found", machineId)
+	return fmt.Errorf("Machine %s not found", machineID)
 }
 
-func (c *CloudAPI) ListMachineFirewallRules(machineId string) ([]*cloudapi.FirewallRule, error) {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// ListMachineFirewallRules returns a list of firewall rules that apply to the
+// given machine
+func (c *CloudAPI) ListMachineFirewallRules(machineID string) ([]*cloudapi.FirewallRule, error) {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return nil, err
 	}
 
 	fwRules := []*cloudapi.FirewallRule{}
 	for _, r := range c.firewallRules {
-		vm := "vm " + machineId
+		vm := "vm " + machineID
 		if strings.Contains(r.Rule, vm) {
 			fwRules = append(fwRules, r)
 		}
@@ -616,46 +644,51 @@ func (c *CloudAPI) ListMachineFirewallRules(machineId string) ([]*cloudapi.Firew
 	return fwRules, nil
 }
 
-func (c *CloudAPI) EnableFirewallMachine(machineId string) error {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// EnableFirewallMachine enables the firewall for the given machine
+func (c *CloudAPI) EnableFirewallMachine(machineID string) error {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return err
 	}
 
-	c.machineFw[machineId] = true
+	c.machineFw[machineID] = true
 
 	return nil
 }
 
-func (c *CloudAPI) DisableFirewallMachine(machineId string) error {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// DisableFirewallMachine disables the firewall for the given machine
+func (c *CloudAPI) DisableFirewallMachine(machineID string) error {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return err
 	}
 
-	c.machineFw[machineId] = false
+	c.machineFw[machineID] = false
 
 	return nil
 }
 
-func (c *CloudAPI) DeleteMachine(machineId string) error {
-	if err := c.ProcessFunctionHook(c, machineId); err != nil {
+// DeleteMachine deletes the given machine from the double
+func (c *CloudAPI) DeleteMachine(machineID string) error {
+	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return err
 	}
 
 	for i, machine := range c.machines {
-		if machine.Id == machineId {
+		if machine.Id == machineID {
 			if machine.State == "stopped" {
 				c.machines = append(c.machines[:i], c.machines[i+1:]...)
 				return nil
-			} else {
-				return fmt.Errorf("Cannot Delete machine %s, machine is not stopped.", machineId)
 			}
+
+			return fmt.Errorf("Cannot Delete machine %s, machine is not stopped.", machineID)
 		}
 	}
 
-	return fmt.Errorf("Machine %s not found", machineId)
+	return fmt.Errorf("Machine %s not found", machineID)
 }
 
 // FirewallRule APIs
+
+// ListFirewallRules gets a list of firewall rules from the double
 func (c *CloudAPI) ListFirewallRules() ([]*cloudapi.FirewallRule, error) {
 	if err := c.ProcessFunctionHook(c); err != nil {
 		return nil, err
@@ -664,99 +697,107 @@ func (c *CloudAPI) ListFirewallRules() ([]*cloudapi.FirewallRule, error) {
 	return c.firewallRules, nil
 }
 
-func (c *CloudAPI) GetFirewallRule(fwRuleId string) (*cloudapi.FirewallRule, error) {
-	if err := c.ProcessFunctionHook(c, fwRuleId); err != nil {
+// GetFirewallRule gets a single firewall rule by ID
+func (c *CloudAPI) GetFirewallRule(fwRuleID string) (*cloudapi.FirewallRule, error) {
+	if err := c.ProcessFunctionHook(c, fwRuleID); err != nil {
 		return nil, err
 	}
 
 	for _, r := range c.firewallRules {
-		if strings.EqualFold(r.Id, fwRuleId) {
+		if strings.EqualFold(r.Id, fwRuleID) {
 			return r, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleId)
+	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleID)
 }
 
+// CreateFirewallRule creates a new firewall rule and returns it
 func (c *CloudAPI) CreateFirewallRule(rule string, enabled bool) (*cloudapi.FirewallRule, error) {
 	if err := c.ProcessFunctionHook(c, rule, enabled); err != nil {
 		return nil, err
 	}
 
-	fwRuleId, err := localservices.NewUUID()
+	fwRuleID, err := localservices.NewUUID()
 	if err != nil {
 		return nil, fmt.Errorf("Error creating firewall rule: %q", err)
 	}
 
-	fwRule := &cloudapi.FirewallRule{Id: fwRuleId, Rule: rule, Enabled: enabled}
+	fwRule := &cloudapi.FirewallRule{Id: fwRuleID, Rule: rule, Enabled: enabled}
 	c.firewallRules = append(c.firewallRules, fwRule)
 
 	return fwRule, nil
 }
 
-func (c *CloudAPI) UpdateFirewallRule(fwRuleId, rule string, enabled bool) (*cloudapi.FirewallRule, error) {
-	if err := c.ProcessFunctionHook(c, fwRuleId, rule, enabled); err != nil {
+// UpdateFirewallRule makes changes to a given firewall rule
+func (c *CloudAPI) UpdateFirewallRule(fwRuleID, rule string, enabled bool) (*cloudapi.FirewallRule, error) {
+	if err := c.ProcessFunctionHook(c, fwRuleID, rule, enabled); err != nil {
 		return nil, err
 	}
 
 	for _, r := range c.firewallRules {
-		if strings.EqualFold(r.Id, fwRuleId) {
+		if strings.EqualFold(r.Id, fwRuleID) {
 			r.Rule = rule
 			r.Enabled = enabled
 			return r, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleId)
+	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleID)
 }
 
-func (c *CloudAPI) EnableFirewallRule(fwRuleId string) (*cloudapi.FirewallRule, error) {
-	if err := c.ProcessFunctionHook(c, fwRuleId); err != nil {
+// EnableFirewallRule enables the given firewall rule
+func (c *CloudAPI) EnableFirewallRule(fwRuleID string) (*cloudapi.FirewallRule, error) {
+	if err := c.ProcessFunctionHook(c, fwRuleID); err != nil {
 		return nil, err
 	}
 
 	for _, r := range c.firewallRules {
-		if strings.EqualFold(r.Id, fwRuleId) {
+		if strings.EqualFold(r.Id, fwRuleID) {
 			r.Enabled = true
 			return r, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleId)
+	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleID)
 }
 
-func (c *CloudAPI) DisableFirewallRule(fwRuleId string) (*cloudapi.FirewallRule, error) {
-	if err := c.ProcessFunctionHook(c, fwRuleId); err != nil {
+// DisableFirewallRule disables the given firewall rule
+func (c *CloudAPI) DisableFirewallRule(fwRuleID string) (*cloudapi.FirewallRule, error) {
+	if err := c.ProcessFunctionHook(c, fwRuleID); err != nil {
 		return nil, err
 	}
 
 	for _, r := range c.firewallRules {
-		if strings.EqualFold(r.Id, fwRuleId) {
+		if strings.EqualFold(r.Id, fwRuleID) {
 			r.Enabled = false
 			return r, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleId)
+	return nil, fmt.Errorf("Firewall rule %s not found", fwRuleID)
 }
 
-func (c *CloudAPI) DeleteFirewallRule(fwRuleId string) error {
-	if err := c.ProcessFunctionHook(c, fwRuleId); err != nil {
+// DeleteFirewallRule deletes the given firewall rule
+func (c *CloudAPI) DeleteFirewallRule(fwRuleID string) error {
+	if err := c.ProcessFunctionHook(c, fwRuleID); err != nil {
 		return err
 	}
 
 	for i, r := range c.firewallRules {
-		if strings.EqualFold(r.Id, fwRuleId) {
+		if strings.EqualFold(r.Id, fwRuleID) {
 			c.firewallRules = append(c.firewallRules[:i], c.firewallRules[i+1:]...)
 			return nil
 		}
 	}
 
-	return fmt.Errorf("Firewall rule %s not found", fwRuleId)
+	return fmt.Errorf("Firewall rule %s not found", fwRuleID)
 }
 
-func (c *CloudAPI) ListFirewallRuleMachines(fwRuleId string) ([]*cloudapi.Machine, error) {
-	if err := c.ProcessFunctionHook(c, fwRuleId); err != nil {
+// ListFirewallRuleMachines should list the machines that are affected by a
+// given firewall rule. In this double, it just returns all the machines.
+func (c *CloudAPI) ListFirewallRuleMachines(fwRuleID string) ([]*cloudapi.Machine, error) {
+	if err := c.ProcessFunctionHook(c, fwRuleID); err != nil {
 		return nil, err
 	}
 
@@ -764,6 +805,8 @@ func (c *CloudAPI) ListFirewallRuleMachines(fwRuleId string) ([]*cloudapi.Machin
 }
 
 // Networks API
+
+// ListNetworks returns a list of networks that the double knows about
 func (c *CloudAPI) ListNetworks() ([]cloudapi.Network, error) {
 	if err := c.ProcessFunctionHook(c); err != nil {
 		return nil, err
@@ -772,16 +815,17 @@ func (c *CloudAPI) ListNetworks() ([]cloudapi.Network, error) {
 	return c.networks, nil
 }
 
-func (c *CloudAPI) GetNetwork(networkId string) (*cloudapi.Network, error) {
-	if err := c.ProcessFunctionHook(c, networkId); err != nil {
+// GetNetwork gets a network by ID
+func (c *CloudAPI) GetNetwork(networkID string) (*cloudapi.Network, error) {
+	if err := c.ProcessFunctionHook(c, networkID); err != nil {
 		return nil, err
 	}
 
 	for _, n := range c.networks {
-		if strings.EqualFold(n.Id, networkId) {
+		if strings.EqualFold(n.Id, networkID) {
 			return &n, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Network %s not found", networkId)
+	return nil, fmt.Errorf("Network %s not found", networkID)
 }
