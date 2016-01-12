@@ -46,7 +46,7 @@ func (s *LiveTests) createKey(c *gc.C) {
 
 // Helper method to create a test virtual machine in the user account
 func (s *LiveTests) createMachine(c *gc.C) *cloudapi.Machine {
-	machine, err := s.testClient.CreateMachine(cloudapi.CreateMachineOpts{Package: packageName, Image: imageId})
+	machine, err := s.testClient.CreateMachine(cloudapi.CreateMachineOpts{Package: packageName, Image: imageID})
 	c.Assert(err, gc.IsNil)
 	c.Assert(machine, gc.NotNil)
 
@@ -60,7 +60,7 @@ func (s *LiveTests) createMachine(c *gc.C) *cloudapi.Machine {
 
 // Helper method to create a test virtual machine in the user account with the specified tags
 func (s *LiveTests) createMachineWithTags(c *gc.C, tags map[string]string) *cloudapi.Machine {
-	machine, err := s.testClient.CreateMachine(cloudapi.CreateMachineOpts{Package: packageName, Image: imageId, Tags: tags})
+	machine, err := s.testClient.CreateMachine(cloudapi.CreateMachineOpts{Package: packageName, Image: imageID, Tags: tags})
 	c.Assert(err, gc.IsNil)
 	c.Assert(machine, gc.NotNil)
 
@@ -241,7 +241,7 @@ func (s *LiveTests) TestGetPackageFromName(c *gc.C) {
 		Swap:        2048,
 		VCPUs:       0,
 		Default:     false,
-		Id:          packageId,
+		Id:          packageID,
 		Version:     "1.0.0",
 		Description: "Standard 1 GB RAM 0.25 vCPU and bursting 33 GB Disk",
 		Group:       "Standard",
@@ -249,7 +249,7 @@ func (s *LiveTests) TestGetPackageFromName(c *gc.C) {
 }
 
 func (s *LiveTests) TestGetPackageFromId(c *gc.C) {
-	key, err := s.testClient.GetPackage(packageId)
+	key, err := s.testClient.GetPackage(packageID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(key, gc.NotNil)
 	c.Assert(key, gc.DeepEquals, &cloudapi.Package{
@@ -259,7 +259,7 @@ func (s *LiveTests) TestGetPackageFromId(c *gc.C) {
 		Swap:        2048,
 		VCPUs:       0,
 		Default:     false,
-		Id:          packageId,
+		Id:          packageID,
 		Version:     "1.0.0",
 		Description: "Standard 1 GB RAM 0.25 vCPU and bursting 33 GB Disk",
 		Group:       "Standard",
@@ -317,11 +317,11 @@ func (s *LiveTests) TestListImagesWithFilter(c *gc.C) {
 
 func (s *LiveTests) TestGetImage(c *gc.C) {
 	requirements := map[string]interface{}{}
-	img, err := s.testClient.GetImage(imageId)
+	img, err := s.testClient.GetImage(imageID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(img, gc.NotNil)
 	c.Assert(img, gc.DeepEquals, &cloudapi.Image{
-		Id:           imageId,
+		Id:           imageID,
 		Name:         "base",
 		Version:      "13.1.0",
 		OS:           "smartos",
@@ -355,7 +355,7 @@ func (s *LiveTests) TestCreateMachine(c *gc.C) {
 	c.Assert(testMachine.Memory, gc.Equals, 1024)
 	c.Assert(testMachine.Disk, gc.Equals, 33792)
 	c.Assert(testMachine.Package, gc.Equals, packageName)
-	c.Assert(testMachine.Image, gc.Equals, imageId)
+	c.Assert(testMachine.Image, gc.Equals, imageID)
 }
 
 func (s *LiveTests) TestCreateMachineWithTags(c *gc.C) {
@@ -368,7 +368,7 @@ func (s *LiveTests) TestCreateMachineWithTags(c *gc.C) {
 	c.Assert(testMachine.Memory, gc.Equals, 1024)
 	c.Assert(testMachine.Disk, gc.Equals, 33792)
 	c.Assert(testMachine.Package, gc.Equals, packageName)
-	c.Assert(testMachine.Image, gc.Equals, imageId)
+	c.Assert(testMachine.Image, gc.Equals, imageID)
 	c.Assert(testMachine.Tags, gc.DeepEquals, map[string]string{"tag1": "value1", "tag2": "value2"})
 }
 
@@ -747,11 +747,11 @@ func (s *LiveTests) TestListNetworks(c *gc.C) {
 }
 
 func (s *LiveTests) TestGetNetwork(c *gc.C) {
-	net, err := s.testClient.GetNetwork(networkId)
+	net, err := s.testClient.GetNetwork(networkID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(net, gc.NotNil)
 	c.Assert(net, gc.DeepEquals, &cloudapi.Network{
-		Id:          networkId,
+		Id:          networkID,
 		Name:        "Joyent-SDC-Public",
 		Public:      true,
 		Description: "",

@@ -3,9 +3,7 @@
 //
 // CloudAPI double testing service - internal direct API test
 //
-// Copyright (c) 2013 Joyent Inc.
-//
-// Written by Daniele Stroppa <daniele.stroppa@joyent.com>
+// Copyright (c) Joyent Inc.
 //
 
 package cloudapi_test
@@ -32,7 +30,7 @@ const (
 	testMachineName   = "test-machine"
 	testFwRule        = "FROM subnet 10.35.76.0/24 TO subnet 10.35.101.0/24 ALLOW tcp (PORT 80 AND PORT 443)"
 	testUpdatedFwRule = "FROM subnet 10.35.76.0/24 TO subnet 10.35.101.0/24 ALLOW tcp (port 80 AND port 443 AND port 8080)"
-	testNetworkId     = "123abc4d-0011-aabb-2233-ccdd4455"
+	testNetworkID     = "123abc4d-0011-aabb-2233-ccdd4455"
 )
 
 var _ = gc.Suite(&CloudAPISuite{})
@@ -59,16 +57,16 @@ func (s *CloudAPISuite) deleteKey(c *gc.C, keyName string) {
 }
 
 func (s *CloudAPISuite) createMachine(c *gc.C, name, pkg, image string, metadata, tags map[string]string) *cloudapi.Machine {
-	m, err := s.service.CreateMachine(name, pkg, image, metadata, tags)
+	m, err := s.service.CreateMachine(name, pkg, image, []string{testNetworkID}, metadata, tags)
 	c.Assert(err, gc.IsNil)
 
 	return m
 }
 
-func (s *CloudAPISuite) deleteMachine(c *gc.C, machineId string) {
-	err := s.service.StopMachine(machineId)
+func (s *CloudAPISuite) deleteMachine(c *gc.C, machineID string) {
+	err := s.service.StopMachine(machineID)
 	c.Assert(err, gc.IsNil)
-	err = s.service.DeleteMachine(machineId)
+	err = s.service.DeleteMachine(machineID)
 	c.Assert(err, gc.IsNil)
 }
 
@@ -84,8 +82,8 @@ func (s *CloudAPISuite) createFirewallRule(c *gc.C) *cloudapi.FirewallRule {
 }
 
 // Helper method to a test firewall rule
-func (s *CloudAPISuite) deleteFwRule(c *gc.C, fwRuleId string) {
-	err := s.service.DeleteFirewallRule(fwRuleId)
+func (s *CloudAPISuite) deleteFwRule(c *gc.C, fwRuleID string) {
+	err := s.service.DeleteFirewallRule(fwRuleID)
 	c.Assert(err, gc.IsNil)
 }
 
@@ -191,7 +189,7 @@ func (s *CloudAPISuite) TestListMachines(c *gc.C) {
 			c.SucceedNow()
 		}
 	}
-	c.Fatalf("Obtained machine [%s] do not contain test machine [%s]", machines, m)
+	c.Fatalf("Obtained machine [%v] do not contain test machine [%v]", machines, m)
 }
 
 func (s *CloudAPISuite) TestCountMachines(c *gc.C) {
@@ -408,11 +406,11 @@ func (s *CloudAPISuite) TestListNetworks(c *gc.C) {
 }
 
 func (s *CloudAPISuite) TestGetNetwork(c *gc.C) {
-	net, err := s.service.GetNetwork(testNetworkId)
+	net, err := s.service.GetNetwork(testNetworkID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(net, gc.NotNil)
 	c.Assert(net, gc.DeepEquals, &cloudapi.Network{
-		Id:          testNetworkId,
+		Id:          testNetworkID,
 		Name:        "Test-Joyent-Public",
 		Public:      true,
 		Description: "",

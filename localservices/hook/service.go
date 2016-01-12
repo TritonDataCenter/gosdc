@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// TestService is the root object for the test service
 type TestService struct {
 	ServiceControl
 	// Hooks to run when specified control points are reached in the service business logic.

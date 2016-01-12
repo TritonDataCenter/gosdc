@@ -1,3 +1,4 @@
+### Go ###
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
@@ -20,7 +21,5 @@ _cgo_export.*
 _testmain.go
 
 *.exe
-
-# IntelliJ files
-.idea
-*.iml
+*.test
+*.prof
