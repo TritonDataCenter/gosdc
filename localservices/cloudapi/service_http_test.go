@@ -663,12 +663,12 @@ func (s *CloudAPIHTTPSuite) TestListNetworks(c *gc.C) {
 func (s *CloudAPIHTTPSuite) TestGetNetwork(c *gc.C) {
 	var expected cloudapi.Network
 
-	resp, err := s.sendRequest("GET", path.Join(testUserAccount, "networks", testNetworkId), nil, nil)
+	resp, err := s.sendRequest("GET", path.Join(testUserAccount, "networks", testNetworkID), nil, nil)
 	c.Assert(err, gc.IsNil)
 	c.Assert(resp.StatusCode, gc.Equals, http.StatusOK)
 	assertJSON(c, resp, &expected)
 	c.Assert(expected, gc.DeepEquals, cloudapi.Network{
-		Id:          testNetworkId,
+		Id:          testNetworkID,
 		Name:        "Test-Joyent-Public",
 		Public:      true,
 		Description: "",
