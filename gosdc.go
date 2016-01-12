@@ -1,5 +1,5 @@
 /*
-package gosdc enables Go programs to interact with the Joyent CloudAPI.
+Package gosdc enables Go programs to interact with the Joyent CloudAPI.
 
 The gosdc package is structured as follow:
 
