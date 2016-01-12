@@ -1,5 +1,7 @@
 # gosdc
 
+[![wercker status](https://app.wercker.com/status/a67e1ce9fe6c59667adf0de5fc67673b/s/master "wercker status")](https://app.wercker.com/project/bykey/a67e1ce9fe6c59667adf0de5fc67673b)
+
 `gosdc` is a Go client for Joyent's SmartDataCenter
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
