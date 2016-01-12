@@ -22,20 +22,12 @@ build:
         name: go get
         code: |
           go get -v -t ./...
-          go get -v github.com/golang/lint/golint
 
     # Build the project
     - script:
         name: go build
         code: |
           go build ./...
-
-    - script:
-        name: golint
-        code: |
-          VIOLATIONS=$(golint ./...)
-          echo $VIOLATIONS
-          test $(echo $VIOLATIONS | wc -l) -eq 10
 
     # Test the project
     - script:
