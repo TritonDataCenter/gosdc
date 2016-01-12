@@ -23,6 +23,15 @@ build:
         code: |
           go get -v -t ./...
 
+    - script:
+        name: make a new key for testing
+        code: |
+          ssh-keygen -b 2048 \
+                     -C "Testing Key" \
+                     -f $WERCKER_SOURCE_DIR/test_key.id_rsa \
+                     -t rsa \
+                     -P ""
+
     # Build the project
     - script:
         name: go build
@@ -33,4 +42,4 @@ build:
     - script:
         name: go test
         code: |
-          go test ./...
+          env KEY_NAME=$WERCKER_SOURCE_DIR/test_key.id_rsa go test ./...

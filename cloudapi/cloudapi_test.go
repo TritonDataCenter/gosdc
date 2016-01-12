@@ -12,6 +12,8 @@ import (
 	"testing"
 
 	"github.com/joyent/gocommon/jpc"
+	"os"
+	"strconv"
 )
 
 const (
@@ -33,6 +35,19 @@ var live = flag.Bool("live", false, "Include live Joyent Cloud tests")
 var keyName = flag.String("key.name", "", "Specify the full path to the private key, defaults to ~/.ssh/id_rsa")
 
 func Test(t *testing.T) {
+	// check environment variables
+	if os.Getenv("LIVE") != "" {
+		var err error
+		*live, err = strconv.ParseBool(os.Getenv("LIVE"))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if os.Getenv("KEY_NAME") != "" {
+		*keyName = os.Getenv("KEY_NAME")
+	}
+
 	if *live {
 		creds, err := jpc.CompleteCredentialsFromEnv(*keyName)
 		if err != nil {
