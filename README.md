@@ -1,6 +1,6 @@
 # gosdc
 
-[![wercker status](https://app.wercker.com/status/a67e1ce9fe6c59667adf0de5fc67673b/s/master "wercker status")](https://app.wercker.com/project/bykey/a67e1ce9fe6c59667adf0de5fc67673b)
+[![wercker status](https://app.wercker.com/status/349ee60ed0afffd99d2b2b354ada5938/s/master "wercker status")](https://app.wercker.com/project/bykey/349ee60ed0afffd99d2b2b354ada5938)
 
 `gosdc` is a Go client for Joyent's SmartDataCenter
 
