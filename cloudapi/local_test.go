@@ -96,7 +96,7 @@ func (s *LocalTests) deleteKey(c *gc.C) {
 
 // Helper method to create a test virtual machine in the user account
 func (s *LocalTests) createMachine(c *gc.C) *cloudapi.Machine {
-	machine, err := s.testClient.CreateMachine(cloudapi.CreateMachineOpts{Package: localPackageName, Image: localImageId})
+	machine, err := s.testClient.CreateMachine(cloudapi.CreateMachineOpts{Package: localPackageName, Image: localImageID})
 	c.Assert(err, gc.IsNil)
 	c.Assert(machine, gc.NotNil)
 
@@ -273,7 +273,7 @@ func (s *LocalTests) TestGetPackageFromName(c *gc.C) {
 }
 
 func (s *LocalTests) TestGetPackageFromId(c *gc.C) {
-	key, err := s.testClient.GetPackage(localPackageId)
+	key, err := s.testClient.GetPackage(localPackageID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(key, gc.NotNil)
 	c.Assert(key, gc.DeepEquals, &cloudapi.Package{
@@ -338,7 +338,7 @@ func (s *LocalTests) TestListImagesWithFilter(c *gc.C) {
 // TODO Add test for deleteImage, exportImage and CreateMachineFormIMage
 
 func (s *LocalTests) TestGetImage(c *gc.C) {
-	img, err := s.testClient.GetImage(localImageId)
+	img, err := s.testClient.GetImage(localImageID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(img, gc.NotNil)
 	c.Assert(img, gc.DeepEquals, &cloudapi.Image{
@@ -364,7 +364,7 @@ func (s *LocalTests) TestCreateMachine(c *gc.C) {
 	c.Assert(testMachine.Memory, gc.Equals, 1024)
 	c.Assert(testMachine.Disk, gc.Equals, 16384)
 	c.Assert(testMachine.Package, gc.Equals, localPackageName)
-	c.Assert(testMachine.Image, gc.Equals, localImageId)
+	c.Assert(testMachine.Image, gc.Equals, localImageID)
 }
 
 func (s *LocalTests) TestListMachines(c *gc.C) {
@@ -553,11 +553,11 @@ func (s *LocalTests) TestListNetworks(c *gc.C) {
 }
 
 func (s *LocalTests) TestGetNetwork(c *gc.C) {
-	net, err := s.testClient.GetNetwork(localNetworkId)
+	net, err := s.testClient.GetNetwork(localNetworkID)
 	c.Assert(err, gc.IsNil)
 	c.Assert(net, gc.NotNil)
 	c.Assert(net, gc.DeepEquals, &cloudapi.Network{
-		Id:          localNetworkId,
+		Id:          localNetworkID,
 		Name:        "Test-Joyent-Public",
 		Public:      true,
 		Description: "",
