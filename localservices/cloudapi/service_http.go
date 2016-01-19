@@ -419,6 +419,57 @@ func (c *CloudAPI) handleMachineFirewallRules(w http.ResponseWriter, r *http.Req
 	return sendJSON(http.StatusOK, rules, w, r)
 }
 
+// machine metadata
+
+func (c *CloudAPI) handleGetMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	metadata, err := c.GetMachineMetadata(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, metadata, w, r)
+}
+
+func (c *CloudAPI) handleUpdateMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	metadata := make(map[string]string)
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &metadata)
+	if err != nil {
+		return err
+	}
+
+	metadata, err = c.UpdateMachineMetadata(params.ByName("id"), metadata)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, metadata, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachineMetadata(params.ByName("id"), params.ByName("key"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleDeleteAllMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteAllMachineMetadata(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
 // firewall rules
 
 func (c *CloudAPI) handleListFirewallRules(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
@@ -603,6 +654,16 @@ func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
 	mux.GET(machineRoute, c.handler((*CloudAPI).handleGetMachine))
 	mux.POST(machineRoute, c.handler((*CloudAPI).handleUpdateMachine))
 	mux.DELETE(machineRoute, c.handler((*CloudAPI).handleDeleteMachine))
+
+	// machine metadata
+	machineMetadataRoute := machineRoute + "/metadata"
+	mux.GET(machineMetadataRoute, c.handler((*CloudAPI).handleGetMachineMetadata))
+	mux.POST(machineMetadataRoute, c.handler((*CloudAPI).handleUpdateMachineMetadata))
+	mux.DELETE(machineMetadataRoute, c.handler((*CloudAPI).handleDeleteAllMachineMetadata))
+
+	// machine metadata (individual key)
+	machineMetadataKeyRoute := machineMetadataRoute + "/:key"
+	mux.DELETE(machineMetadataKeyRoute, c.handler((*CloudAPI).handleDeleteMachineMetadata))
 
 	// machine firewall rules
 	machineFWRulesRoute := machineRoute + "/fwrules"
