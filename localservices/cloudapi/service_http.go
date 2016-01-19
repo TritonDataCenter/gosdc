@@ -129,6 +129,7 @@ func sendJSON(code int, resp interface{}, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
+	w.Header().Set("Content-Type", "application/json")
 	writeResponse(w, code, data)
 	return nil
 }
@@ -470,6 +471,92 @@ func (c *CloudAPI) handleDeleteAllMachineMetadata(w http.ResponseWriter, r *http
 	return sendJSON(http.StatusNoContent, nil, w, r)
 }
 
+// machine tags
+
+func (c *CloudAPI) handleListMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tags, err := c.ListMachineTags(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, tags, w, r)
+}
+
+func (c *CloudAPI) handleAddMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tags := make(map[string]string)
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &tags)
+	if err != nil {
+		return err
+	}
+
+	tags, err = c.AddMachineTags(params.ByName("id"), tags)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, tags, w, r)
+}
+
+func (c *CloudAPI) handleReplaceMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tags := make(map[string]string)
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &tags)
+	if err != nil {
+		return err
+	}
+
+	tags, err = c.ReplaceMachineTags(params.ByName("id"), tags)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, tags, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachineTags(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachineTag(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachineTag(params.ByName("id"), params.ByName("tag"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleGetMachineTag(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tag, err := c.GetMachineTag(params.ByName("id"), params.ByName("tag"))
+	if err != nil {
+		return err
+	}
+
+	w.Header().Add("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(tag))
+
+	return nil
+}
+
 // firewall rules
 
 func (c *CloudAPI) handleListFirewallRules(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
@@ -664,6 +751,18 @@ func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
 	// machine metadata (individual key)
 	machineMetadataKeyRoute := machineMetadataRoute + "/:key"
 	mux.DELETE(machineMetadataKeyRoute, c.handler((*CloudAPI).handleDeleteMachineMetadata))
+
+	// machine tags
+	machineTagsRoute := machineRoute + "/tags"
+	mux.GET(machineTagsRoute, c.handler((*CloudAPI).handleListMachineTags))
+	mux.POST(machineTagsRoute, c.handler((*CloudAPI).handleAddMachineTags))
+	mux.PUT(machineTagsRoute, c.handler((*CloudAPI).handleReplaceMachineTags))
+	mux.DELETE(machineTagsRoute, c.handler((*CloudAPI).handleDeleteMachineTags))
+
+	// machine tag
+	machineTagRoute := machineTagsRoute + "/:tag"
+	mux.GET(machineTagRoute, c.handler((*CloudAPI).handleGetMachineTag))
+	mux.DELETE(machineTagRoute, c.handler((*CloudAPI).handleDeleteMachineTag))
 
 	// machine firewall rules
 	machineFWRulesRoute := machineRoute + "/fwrules"
