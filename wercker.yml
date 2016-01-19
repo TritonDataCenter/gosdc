@@ -38,6 +38,11 @@ build:
         code: |
           go build ./...
 
+    - script:
+        name: correct import names for forks
+        code: |
+          find . -name '*.go' | xargs sed -i "s|joyent/gosdc|$WERCKER_GIT_OWNER/$WERCKER_GIT_REPOSITORY|g"
+
     # Test the project
     - script:
         name: go test
