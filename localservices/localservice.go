@@ -12,14 +12,14 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/joyent/gosdc/localservices/hook"
+	"github.com/julienschmidt/httprouter"
 )
 
 // An HttpService provides the HTTP API for a service double.
 type HttpService interface {
-	SetupHTTP(mux *http.ServeMux)
+	SetupHTTP(mux *httprouter.Router)
 }
 
 // A ServiceInstance is an Joyent Cloud service.
