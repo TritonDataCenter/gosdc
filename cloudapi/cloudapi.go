@@ -43,6 +43,8 @@ const (
 	apiFirewallRulesEnable     = "enable"
 	apiFirewallRulesDisable    = "disable"
 	apiNetworks                = "networks"
+	apiFabricVLANs             = "fabrics/default/vlans"
+	apiFabricNetworks          = "networks"
 
 	// CloudAPI actions
 	actionExport    = "export"
