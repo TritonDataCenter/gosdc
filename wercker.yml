@@ -15,7 +15,8 @@ build:
   steps:
     # Sets the go workspace and places you package
     # at the right place in the workspace tree
-    - setup-go-workspace
+    - setup-go-workspace:
+        package-dir: github.com/joyent/gosdc
 
     # Gets the dependencies
     - script:
@@ -37,12 +38,6 @@ build:
         name: go build
         code: |
           go build ./...
-
-    - script:
-        name: correct import names for forks
-        code: |
-          mv $GOPATH/src/$WERCKER_GIT_DOMAIN/$WERCKER_GIT_OWNER/$WERCKER_GIT_REPOSITORY $GOPATH/src/github.com/joyent/gosdc
-          find . -name '*.go' -exec xargs sed -i "s|joyent/gosdc|$WERCKER_GIT_OWNER/$WERCKER_GIT_REPOSITORY|g" {} \;
 
     # Test the project
     - script:
