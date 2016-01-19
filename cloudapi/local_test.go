@@ -145,7 +145,7 @@ func (s *LocalTests) listMachines(c *gc.C, filter *cloudapi.Filter) {
 
 	// result
 	if !contains {
-		c.Fatalf("Obtained machines [%s] do not contain test machine [%s]", machines, *testMachine)
+		c.Fatalf("Obtained machines [%v] do not contain test machine [%v]", machines, *testMachine)
 	}
 }
 
