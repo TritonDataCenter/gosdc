@@ -10,13 +10,13 @@ package cloudapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/joyent/gosdc/cloudapi"
+	"github.com/julienschmidt/httprouter"
 )
 
 // ErrorResponse defines a single HTTP error response.
@@ -87,17 +87,17 @@ func (e *ErrorResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type cloudapiHandler struct {
 	cloudapi *CloudAPI
-	method   func(m *CloudAPI, w http.ResponseWriter, r *http.Request) error
+	method   func(m *CloudAPI, w http.ResponseWriter, r *http.Request, p httprouter.Params) error
 }
 
-func (h *cloudapiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *cloudapiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	path := r.URL.Path
 	// handle trailing slash in the path
 	if strings.HasSuffix(path, "/") && path != "/" {
 		ErrNotFound.ServeHTTP(w, r)
 		return
 	}
-	err := h.method(h.cloudapi, w, r)
+	err := h.method(h.cloudapi, w, r, p)
 	if err == nil {
 		return
 	}
@@ -129,6 +129,7 @@ func sendJSON(code int, resp interface{}, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
+	w.Header().Set("Content-Type", "application/json")
 	writeResponse(w, code, data)
 	return nil
 }
@@ -145,567 +146,646 @@ func processFilter(rawQuery string) map[string]string {
 	return filters
 }
 
-func (c *CloudAPI) handler(method func(m *CloudAPI, w http.ResponseWriter, r *http.Request) error) http.Handler {
-	return &cloudapiHandler{c, method}
+func (c *CloudAPI) handler(method func(m *CloudAPI, w http.ResponseWriter, r *http.Request, p httprouter.Params) error) httprouter.Handle {
+	handler := &cloudapiHandler{c, method}
+	return handler.ServeHTTP
 }
 
-// handleKeys handles the keys HTTP API.
-func (c *CloudAPI) handleKeys(w http.ResponseWriter, r *http.Request) error {
-	prefix := fmt.Sprintf("/%s/keys/", c.ServiceInstance.UserAccount)
-	keyName := strings.TrimPrefix(r.URL.Path, prefix)
-	switch r.Method {
-	case "GET":
-		if strings.HasSuffix(r.URL.Path, "keys") {
-			// ListKeys
-			keys, err := c.ListKeys()
-			if err != nil {
-				return err
-			}
-			if keys == nil {
-				keys = []cloudapi.Key{}
-			}
-			resp := keys
-			return sendJSON(http.StatusOK, resp, w, r)
-		}
+// Keys
 
-		// GetKey
-		key, err := c.GetKey(keyName)
-		if err != nil {
+func (c *CloudAPI) handleListKeys(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	keys, err := c.ListKeys()
+	if err != nil {
+		return err
+	}
+	if keys == nil {
+		keys = []cloudapi.Key{}
+	}
+	return sendJSON(http.StatusOK, keys, w, r)
+}
+
+func (c *CloudAPI) handleGetKey(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	key, err := c.GetKey(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404 if key not found
+	}
+	if key == nil {
+		key = &cloudapi.Key{}
+	}
+	return sendJSON(http.StatusOK, key, w, r)
+}
+
+func (c *CloudAPI) handleCreateKey(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	opts := &cloudapi.CreateKeyOpts{}
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	if err != nil {
+		return err
+	}
+	if len(body) > 0 {
+		if err := json.Unmarshal(body, opts); err != nil {
 			return err
 		}
-		if key == nil {
-			key = &cloudapi.Key{}
-		}
-		resp := key
-		return sendJSON(http.StatusOK, resp, w, r)
-
-	case "POST":
-		if strings.HasSuffix(r.URL.Path, "keys") {
-			// CreateKey
-			var (
-				name string
-				key  string
-			)
-			opts := &cloudapi.CreateKeyOpts{}
-			body, errB := ioutil.ReadAll(r.Body)
-			if errB != nil {
-				return errB
-			}
-			if len(body) > 0 {
-				if errJ := json.Unmarshal(body, opts); errJ != nil {
-					return errJ
-				}
-				name = opts.Name
-				key = opts.Key
-			}
-			k, err := c.CreateKey(name, key)
-			if err != nil {
-				return err
-			}
-			if k == nil {
-				k = &cloudapi.Key{}
-			}
-			resp := k
-			return sendJSON(http.StatusCreated, resp, w, r)
-		}
-
-		return ErrNotAllowed
-
-	case "PUT":
-		return ErrNotAllowed
-
-	case "DELETE":
-		if strings.HasSuffix(r.URL.Path, "keys") {
-			return ErrNotAllowed
-		}
-
-		// DeleteKey
-		err := c.DeleteKey(keyName)
-		if err != nil {
-			return err
-		}
-		return sendJSON(http.StatusNoContent, nil, w, r)
 	}
 
-	return fmt.Errorf("unknown request method %q for %s", r.Method, r.URL.Path)
-}
-
-// handleImages handles the images HTTP API.
-func (c *CloudAPI) handleImages(w http.ResponseWriter, r *http.Request) error {
-	prefix := fmt.Sprintf("/%s/images/", c.ServiceInstance.UserAccount)
-	imageID := strings.TrimPrefix(r.URL.Path, prefix)
-	switch r.Method {
-	case "GET":
-		if strings.HasSuffix(r.URL.Path, "images") {
-			// ListImages
-			images, err := c.ListImages(processFilter(r.URL.RawQuery))
-			if err != nil {
-				return err
-			}
-			if images == nil {
-				images = []cloudapi.Image{}
-			}
-			resp := images
-			return sendJSON(http.StatusOK, resp, w, r)
-		}
-
-		// GetImage
-		image, err := c.GetImage(imageID)
-		if err != nil {
-			return err
-		}
-		if image == nil {
-			image = &cloudapi.Image{}
-		}
-		resp := image
-		return sendJSON(http.StatusOK, resp, w, r)
-
-	case "POST":
-		if strings.HasSuffix(r.URL.Path, "images") {
-			// CreateImageFromMachine
-			return ErrNotFound
-		}
-		return ErrNotAllowed
-
-	case "PUT":
-		return ErrNotAllowed
-
-	case "DELETE":
-		/*if strings.HasSuffix(r.URL.Path, "images") {
-			return ErrNotAllowed
-		} else {
-			err := c.DeleteImage(imageId)
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusNoContent, nil, w, r)
-		}*/
-		return ErrNotAllowed
+	key, err := c.CreateKey(opts.Name, opts.Key)
+	if err != nil {
+		return err
 	}
-	return fmt.Errorf("unknown request method %q for %s", r.Method, r.URL.Path)
+	if key == nil {
+		key = &cloudapi.Key{}
+	}
+	return sendJSON(http.StatusCreated, key, w, r)
 }
 
-// handlePackages handles the packages HTTP API.
-func (c *CloudAPI) handlePackages(w http.ResponseWriter, r *http.Request) error {
-	prefix := fmt.Sprintf("/%s/packages/", c.ServiceInstance.UserAccount)
-	pkgName := strings.TrimPrefix(r.URL.Path, prefix)
-	switch r.Method {
-	case "GET":
-		if strings.HasSuffix(r.URL.Path, "packages") {
-			// ListPackages
-			pkgs, err := c.ListPackages(processFilter(r.URL.RawQuery))
-			if err != nil {
-				return err
-			}
-			if pkgs == nil {
-				pkgs = []cloudapi.Package{}
-			}
-			resp := pkgs
-			return sendJSON(http.StatusOK, resp, w, r)
-		}
-
-		// GetPackage
-		pkg, err := c.GetPackage(pkgName)
-		if err != nil {
-			return err
-		}
-		if pkg == nil {
-			pkg = &cloudapi.Package{}
-		}
-		resp := pkg
-		return sendJSON(http.StatusOK, resp, w, r)
-
-	case "POST":
-		return ErrNotAllowed
-
-	case "PUT":
-		return ErrNotAllowed
-
-	case "DELETE":
-		return ErrNotAllowed
+func (c *CloudAPI) handleDeleteKey(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteKey(params.ByName("id"))
+	if err != nil {
+		return err // TODO: handle 404
 	}
 
-	return fmt.Errorf("unknown request method %q for %s", r.Method, r.URL.Path)
+	return sendJSON(http.StatusNoContent, nil, w, r)
 }
 
-// handleMachines handles the machine HTTP API.
-func (c *CloudAPI) handleMachines(w http.ResponseWriter, r *http.Request) error {
-	prefix := fmt.Sprintf("/%s/machines/", c.ServiceInstance.UserAccount)
-	machineID := strings.TrimPrefix(r.URL.Path, prefix)
-	switch r.Method {
-	case "GET":
-		if strings.HasSuffix(r.URL.Path, "machines") {
-			// ListMachines
-			machines, err := c.ListMachines(processFilter(r.URL.RawQuery))
-			if err != nil {
-				return err
-			}
-			if machines == nil {
-				machines = []*cloudapi.Machine{}
-			}
-			resp := machines
-			return sendJSON(http.StatusOK, resp, w, r)
-		} else if strings.HasSuffix(r.URL.Path, "fwrules") {
-			// ListMachineFirewallRules
-			machineID = strings.TrimSuffix(machineID, "/fwrules")
-			fwRules, err := c.ListMachineFirewallRules(machineID)
-			if err != nil {
-				return err
-			}
-			if fwRules == nil {
-				fwRules = []*cloudapi.FirewallRule{}
-			}
-			resp := fwRules
-			return sendJSON(http.StatusOK, resp, w, r)
-		}
+// images
 
-		// GetMachine
-		machine, err := c.GetMachine(machineID)
-		if err != nil {
-			return err
-		}
-		if machine == nil {
-			machine = &cloudapi.Machine{}
-		}
-		resp := machine
-		return sendJSON(http.StatusOK, resp, w, r)
+func (c *CloudAPI) handleListImages(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	images, err := c.ListImages(processFilter(r.URL.RawQuery))
+	if err != nil {
+		return err
+	}
+	if images == nil {
+		images = []cloudapi.Image{}
+	}
+	return sendJSON(http.StatusOK, images, w, r)
+}
 
-	case "HEAD":
-		if strings.HasSuffix(r.URL.Path, "machines") {
-			// CountMachines
-			count, err := c.CountMachines()
-			if err != nil {
-				return err
-			}
-			resp := count
-			return sendJSON(http.StatusOK, resp, w, r)
-		}
+func (c *CloudAPI) handleGetImage(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	image, err := c.GetImage(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if image == nil {
+		image = &cloudapi.Image{}
+	}
+	return sendJSON(http.StatusOK, image, w, r)
+}
 
-		return ErrNotAllowed
+func (c *CloudAPI) handleCreateImageFromMachine(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	return ErrNotFound // TODO: implement
+}
 
-	case "POST":
-		if strings.HasSuffix(r.URL.Path, "machines") {
-			// CreateMachine
-			var (
-				name     string
-				pkg      string
-				image    string
-				networks []string
-				metadata = map[string]string{}
-				tags     = map[string]string{}
-			)
-			opts := map[string]interface{}{}
-			body, errB := ioutil.ReadAll(r.Body)
-			if errB != nil {
-				return errB
-			}
-			if len(body) > 0 {
-				if errJ := json.Unmarshal(body, &opts); errJ != nil {
-					fmt.Println(errJ)
-					return errJ
-				}
-				for k, v := range opts {
-					if v == nil {
-						continue
-					}
+func (c *CloudAPI) handleDeleteImage(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	// TODO: implement c.DeleteImage
+	// err := c.DeleteImage(params.ByName("id"))
+	// if err != nil {
+	// 	return err // TODO: 404
+	// }
+	// return sendJSON(http.StatusNoContent, nil, w, r)
+	return ErrNotAllowed
+}
 
-					switch k {
-					case "name":
-						name = v.(string)
-					case "package":
-						pkg = v.(string)
-					case "image":
-						image = v.(string)
-					case "networks":
-						networks = []string{}
-						for _, n := range v.([]interface{}) {
-							networks = append(networks, n.(string))
-						}
-					default:
-						if strings.HasPrefix(k, "tag.") {
-							tags[k[4:]] = v.(string)
-							continue
-						}
-						if strings.HasPrefix(k, "metadata.") {
-							metadata[k[9:]] = v.(string)
-							continue
-						}
-					}
-				}
-			}
-			machine, err := c.CreateMachine(name, pkg, image, networks, metadata, tags)
-			if err != nil {
-				return err
-			}
-			if machine == nil {
-				machine = &cloudapi.Machine{}
-			}
-			resp := machine
-			return sendJSON(http.StatusCreated, resp, w, r)
-		} else if r.URL.Query().Get("action") == "stop" {
-			//StopMachine
-			err := c.StopMachine(machineID)
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		} else if r.URL.Query().Get("action") == "start" {
-			//StartMachine
-			err := c.StartMachine(machineID)
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		} else if r.URL.Query().Get("action") == "reboot" {
-			//RebootMachine
-			err := c.RebootMachine(machineID)
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		} else if r.URL.Query().Get("action") == "resize" {
-			//ResizeMachine
-			err := c.ResizeMachine(machineID, r.URL.Query().Get("package"))
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		} else if r.URL.Query().Get("action") == "rename" {
-			//RenameMachine
-			err := c.RenameMachine(machineID, r.URL.Query().Get("name"))
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		} else if r.URL.Query().Get("action") == "enable_firewall" {
-			//EnableFirewallMachine
-			err := c.EnableFirewallMachine(machineID)
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		} else if r.URL.Query().Get("action") == "disable_firewall" {
-			//DisableFirewallMachine
-			err := c.DisableFirewallMachine(machineID)
-			if err != nil {
-				return err
-			}
-			return sendJSON(http.StatusAccepted, nil, w, r)
-		}
+// packages
 
-		return ErrNotAllowed
+func (c *CloudAPI) handleListPackages(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	pkgs, err := c.ListPackages(processFilter(r.URL.RawQuery))
+	if err != nil {
+		return err
+	}
+	if pkgs == nil {
+		pkgs = []cloudapi.Package{}
+	}
+	return sendJSON(http.StatusOK, pkgs, w, r)
+}
 
-	case "PUT":
-		return ErrNotAllowed
+func (c *CloudAPI) handleGetPackage(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	pkg, err := c.GetPackage(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if pkg == nil {
+		pkg = &cloudapi.Package{}
+	}
+	return sendJSON(http.StatusOK, pkg, w, r)
+}
 
-	case "DELETE":
-		if strings.HasSuffix(r.URL.Path, "machines") {
-			return ErrNotAllowed
-		}
+// machines
 
-		// DeleteMachine
-		err := c.DeleteMachine(machineID)
-		if err != nil {
-			return err
-		}
-		return sendJSON(http.StatusNoContent, nil, w, r)
+func (c *CloudAPI) handleListMachines(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	machines, err := c.ListMachines(processFilter(r.URL.RawQuery))
+	if err != nil {
+		return err
+	}
+	if machines == nil {
+		machines = []*cloudapi.Machine{}
+	}
+	return sendJSON(http.StatusOK, machines, w, r)
+}
+
+func (c *CloudAPI) handleCountMachines(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	count, err := c.CountMachines()
+	if err != nil {
+		return err
+	}
+	return sendJSON(http.StatusOK, count, w, r)
+}
+
+func (c *CloudAPI) handleGetMachine(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	machine, err := c.GetMachine(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if machine == nil {
+		machine = &cloudapi.Machine{}
+	}
+	return sendJSON(http.StatusOK, machine, w, r)
+}
+
+func (c *CloudAPI) handleCreateMachine(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	var (
+		name     string
+		pkg      string
+		image    string
+		networks []string
+		metadata = map[string]string{}
+		tags     = map[string]string{}
+	)
+	opts := map[string]interface{}{}
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
 	}
 
-	return fmt.Errorf("unknown request method %q for %s", r.Method, r.URL.Path)
-}
-
-// handleFwRules handles the firewall rules HTTP API.
-func (c *CloudAPI) handleFwRules(w http.ResponseWriter, r *http.Request) error {
-	prefix := fmt.Sprintf("/%s/fwrules/", c.ServiceInstance.UserAccount)
-	fwRuleID := strings.TrimPrefix(r.URL.Path, prefix)
-	switch r.Method {
-	case "GET":
-		if strings.HasSuffix(r.URL.Path, "fwrules") {
-			// ListFirewallRules
-			fwRules, err := c.ListFirewallRules()
-			if err != nil {
-				return err
-			}
-			if fwRules == nil {
-				fwRules = []*cloudapi.FirewallRule{}
-			}
-			resp := fwRules
-			return sendJSON(http.StatusOK, resp, w, r)
+	if err := json.Unmarshal(body, &opts); err != nil {
+		return err
+	}
+	for k, v := range opts {
+		if v == nil {
+			continue
 		}
 
-		// GetFirewallRule
-		fwRule, err := c.GetFirewallRule(fwRuleID)
-		if err != nil {
-			return err
-		}
-		if fwRule == nil {
-			fwRule = &cloudapi.FirewallRule{}
-		}
-		resp := fwRule
-		return sendJSON(http.StatusOK, resp, w, r)
-
-	case "POST":
-		if strings.HasSuffix(r.URL.Path, "fwrules") {
-			// CreateFirewallRule
-			var (
-				rule    string
-				enabled bool
-			)
-			opts := &cloudapi.CreateFwRuleOpts{}
-			body, errB := ioutil.ReadAll(r.Body)
-			if errB != nil {
-				return errB
+		switch k {
+		case "name":
+			name = v.(string)
+		case "package":
+			pkg = v.(string)
+		case "image":
+			image = v.(string)
+		case "networks":
+			networks = []string{}
+			for _, n := range v.([]interface{}) {
+				networks = append(networks, n.(string))
 			}
-			if len(body) > 0 {
-				if errJ := json.Unmarshal(body, opts); errJ != nil {
-					return errJ
-				}
-				rule = opts.Rule
-				enabled = opts.Enabled
+		default:
+			if strings.HasPrefix(k, "tag.") {
+				tags[k[4:]] = v.(string)
+				continue
 			}
-			fwRule, err := c.CreateFirewallRule(rule, enabled)
-			if err != nil {
-				return err
+			if strings.HasPrefix(k, "metadata.") {
+				metadata[k[9:]] = v.(string)
+				continue
 			}
-			if fwRule == nil {
-				fwRule = &cloudapi.FirewallRule{}
-			}
-			resp := fwRule
-			return sendJSON(http.StatusCreated, resp, w, r)
-		} else if strings.HasSuffix(r.URL.Path, "enable") {
-			// EnableFirewallRule
-			fwRuleID = strings.TrimSuffix(fwRuleID, "/enable")
-			fwRule, err := c.EnableFirewallRule(fwRuleID)
-			if err != nil {
-				return err
-			}
-			if fwRule == nil {
-				fwRule = &cloudapi.FirewallRule{}
-			}
-			resp := fwRule
-			return sendJSON(http.StatusOK, resp, w, r)
-		} else if strings.HasSuffix(r.URL.Path, "disable") {
-			// DisableFirewallRule
-			fwRuleID = strings.TrimSuffix(fwRuleID, "/disable")
-			fwRule, err := c.DisableFirewallRule(fwRuleID)
-			if err != nil {
-				return err
-			}
-			if fwRule == nil {
-				fwRule = &cloudapi.FirewallRule{}
-			}
-			resp := fwRule
-			return sendJSON(http.StatusOK, resp, w, r)
 		}
-
-		// UpdateFirewallRule
-		var (
-			rule    string
-			enabled bool
-		)
-		opts := &cloudapi.CreateFwRuleOpts{}
-		body, errB := ioutil.ReadAll(r.Body)
-		if errB != nil {
-			return errB
-		}
-		if len(body) > 0 {
-			if errJ := json.Unmarshal(body, opts); errJ != nil {
-				return errJ
-			}
-			rule = opts.Rule
-			enabled = opts.Enabled
-		}
-		fwRule, err := c.UpdateFirewallRule(fwRuleID, rule, enabled)
-		if err != nil {
-			return err
-		}
-		if fwRule == nil {
-			fwRule = &cloudapi.FirewallRule{}
-		}
-		resp := fwRule
-		return sendJSON(http.StatusOK, resp, w, r)
-
-	case "PUT":
-		return ErrNotAllowed
-
-	case "DELETE":
-		if strings.HasSuffix(r.URL.Path, "fwrules") {
-			return ErrNotAllowed
-		}
-
-		// DeleteFirewallRule
-		err := c.DeleteFirewallRule(fwRuleID)
-		if err != nil {
-			return err
-		}
-		return sendJSON(http.StatusNoContent, nil, w, r)
-
 	}
 
-	return fmt.Errorf("unknown request method %q for %s", r.Method, r.URL.Path)
+	machine, err := c.CreateMachine(name, pkg, image, networks, metadata, tags)
+	if err != nil {
+		return err
+	}
+	if machine == nil {
+		machine = &cloudapi.Machine{}
+	}
+	return sendJSON(http.StatusCreated, machine, w, r)
 }
 
-// handleNetworks handles the networks HTTP API.
-func (c *CloudAPI) handleNetworks(w http.ResponseWriter, r *http.Request) error {
-	prefix := fmt.Sprintf("/%s/networks/", c.ServiceInstance.UserAccount)
-	networkID := strings.TrimPrefix(r.URL.Path, prefix)
-	switch r.Method {
-	case "GET":
-		if strings.HasSuffix(r.URL.Path, "networks") {
-			// ListNetworks
-			networks, err := c.ListNetworks()
-			if err != nil {
-				return err
-			}
-			if networks == nil {
-				networks = []cloudapi.Network{}
-			}
-			resp := networks
-			return sendJSON(http.StatusOK, resp, w, r)
-		}
+func (c *CloudAPI) handleUpdateMachine(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	var (
+		err error
+		id  = params.ByName("id")
+	)
 
-		// GetNetwork
-		network, err := c.GetNetwork(networkID)
-		if err != nil {
-			return err
-		}
-		if network == nil {
-			network = &cloudapi.Network{}
-		}
-		resp := network
-		return sendJSON(http.StatusOK, resp, w, r)
+	switch r.URL.Query().Get("action") {
+	case "stop":
+		err = c.StopMachine(id)
 
-	case "POST":
-		return ErrNotAllowed
+	case "start":
+		err = c.StartMachine(id)
 
-	case "PUT":
-		return ErrNotAllowed
+	case "reboot":
+		err = c.RebootMachine(id)
 
-	case "DELETE":
+	case "resize":
+		err = c.ResizeMachine(id, r.URL.Query().Get("package"))
+
+	case "rename":
+		err = c.RenameMachine(id, r.URL.Query().Get("name"))
+
+	case "enable_firewall":
+		err = c.EnableFirewallMachine(id)
+
+	case "disable_firewall":
+		err = c.DisableFirewallMachine(id)
+
+	default:
 		return ErrNotAllowed
 	}
 
-	return fmt.Errorf("unknown request method %q for %s", r.Method, r.URL.Path)
+	if err != nil {
+		return err
+	}
+	return sendJSON(http.StatusAccepted, nil, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachine(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachine(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleMachineFirewallRules(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	rules, err := c.ListMachineFirewallRules(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if rules == nil {
+		rules = []*cloudapi.FirewallRule{}
+	}
+	return sendJSON(http.StatusOK, rules, w, r)
+}
+
+// machine metadata
+
+func (c *CloudAPI) handleGetMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	metadata, err := c.GetMachineMetadata(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, metadata, w, r)
+}
+
+func (c *CloudAPI) handleUpdateMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	metadata := make(map[string]string)
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &metadata)
+	if err != nil {
+		return err
+	}
+
+	metadata, err = c.UpdateMachineMetadata(params.ByName("id"), metadata)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, metadata, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachineMetadata(params.ByName("id"), params.ByName("key"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleDeleteAllMachineMetadata(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteAllMachineMetadata(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+// machine tags
+
+func (c *CloudAPI) handleListMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tags, err := c.ListMachineTags(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, tags, w, r)
+}
+
+func (c *CloudAPI) handleAddMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tags := make(map[string]string)
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &tags)
+	if err != nil {
+		return err
+	}
+
+	tags, err = c.AddMachineTags(params.ByName("id"), tags)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, tags, w, r)
+}
+
+func (c *CloudAPI) handleReplaceMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tags := make(map[string]string)
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &tags)
+	if err != nil {
+		return err
+	}
+
+	tags, err = c.ReplaceMachineTags(params.ByName("id"), tags)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, tags, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachineTags(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachineTags(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleDeleteMachineTag(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteMachineTag(params.ByName("id"), params.ByName("tag"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleGetMachineTag(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	tag, err := c.GetMachineTag(params.ByName("id"), params.ByName("tag"))
+	if err != nil {
+		return err
+	}
+
+	w.Header().Add("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(tag))
+
+	return nil
+}
+
+// firewall rules
+
+func (c *CloudAPI) handleListFirewallRules(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	rules, err := c.ListFirewallRules()
+	if err != nil {
+		return err
+	}
+	if rules == nil {
+		rules = []*cloudapi.FirewallRule{}
+	}
+	return sendJSON(http.StatusOK, rules, w, r)
+}
+
+func (c *CloudAPI) handleGetFirewallRule(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	rule, err := c.GetFirewallRule(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if rule == nil {
+		rule = &cloudapi.FirewallRule{}
+	}
+	return sendJSON(http.StatusOK, rule, w, r)
+}
+
+func (c *CloudAPI) handleCreateFirewallRule(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	opts := new(cloudapi.CreateFwRuleOpts)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
+	}
+	if err = json.Unmarshal(body, opts); err != nil {
+		return err
+	}
+
+	rule, err := c.CreateFirewallRule(opts.Rule, opts.Enabled)
+	if err != nil {
+		return err
+	}
+	if rule == nil {
+		rule = &cloudapi.FirewallRule{}
+	}
+	return sendJSON(http.StatusCreated, rule, w, r)
+}
+
+func (c *CloudAPI) handleUpdateFirewallRule(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	opts := new(cloudapi.CreateFwRuleOpts)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
+	}
+	if err = json.Unmarshal(body, opts); err != nil {
+		return err
+	}
+
+	rule, err := c.UpdateFirewallRule(params.ByName("id"), opts.Rule, opts.Enabled)
+	if err != nil {
+		return err // TODO: 404
+	}
+	if rule == nil {
+		rule = new(cloudapi.FirewallRule)
+	}
+	return sendJSON(http.StatusOK, rule, w, r)
+}
+
+func (c *CloudAPI) handleDeleteFirewallRule(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.DeleteFirewallRule(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleEnableFirewallRule(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	rule, err := c.EnableFirewallRule(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if rule == nil {
+		rule = new(cloudapi.FirewallRule)
+	}
+	return sendJSON(http.StatusOK, rule, w, r)
+}
+
+func (c *CloudAPI) handleDisableFirewallRule(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	rule, err := c.DisableFirewallRule(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if rule == nil {
+		rule = new(cloudapi.FirewallRule)
+	}
+	return sendJSON(http.StatusOK, rule, w, r)
+}
+
+// Networks
+
+func (c *CloudAPI) handleListNetworks(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	networks, err := c.ListNetworks()
+	if err != nil {
+		return err
+	}
+	if networks == nil {
+		networks = []cloudapi.Network{}
+	}
+	return sendJSON(http.StatusOK, networks, w, r)
+}
+
+func (c *CloudAPI) handleGetNetwork(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	network, err := c.GetNetwork(params.ByName("id"))
+	if err != nil {
+		return err // TODO: 404
+	}
+	if network == nil {
+		network = new(cloudapi.Network)
+	}
+	return sendJSON(http.StatusOK, network, w, r)
+}
+
+type NotFound struct{}
+
+func (NotFound) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("Resource Not Found"))
+}
+
+type MethodNotAllowed struct{}
+
+func (MethodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	w.Write([]byte("Method is not allowed"))
 }
 
 // SetupHTTP attaches all the needed handlers to provide the HTTP API.
-func (c *CloudAPI) SetupHTTP(mux *http.ServeMux) {
-	handlers := map[string]http.Handler{
-		"/":               ErrNotFound,
-		"/$user/":         ErrBadRequest,
-		"/$user/keys":     c.handler((*CloudAPI).handleKeys),
-		"/$user/images":   c.handler((*CloudAPI).handleImages),
-		"/$user/packages": c.handler((*CloudAPI).handlePackages),
-		"/$user/machines": c.handler((*CloudAPI).handleMachines),
-		//"/$user/datacenters": 	c.handler((*CloudAPI).handleDatacenters),
-		"/$user/fwrules":  c.handler((*CloudAPI).handleFwRules),
-		"/$user/networks": c.handler((*CloudAPI).handleNetworks),
-	}
-	for path, h := range handlers {
-		path = strings.Replace(path, "$user", c.ServiceInstance.UserAccount, 1)
-		if !strings.HasSuffix(path, "/") {
-			mux.Handle(path+"/", h)
-		}
-		mux.Handle(path, h)
-	}
+func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
+	baseRoute := "/" + c.ServiceInstance.UserAccount
+
+	mux.NotFound = NotFound{}
+	mux.MethodNotAllowed = MethodNotAllowed{}
+
+	// keys
+	keysRoute := baseRoute + "/keys"
+	mux.GET(keysRoute, c.handler((*CloudAPI).handleListKeys))
+	mux.POST(keysRoute, c.handler((*CloudAPI).handleCreateKey))
+
+	// key
+	keyRoute := keysRoute + "/:id"
+	mux.GET(keyRoute, c.handler((*CloudAPI).handleGetKey))
+	mux.DELETE(keyRoute, c.handler((*CloudAPI).handleDeleteKey))
+
+	// images
+	imagesRoute := baseRoute + "/images"
+	mux.GET(imagesRoute, c.handler((*CloudAPI).handleListImages))
+
+	// image
+	imageRoute := imagesRoute + "/:id"
+	mux.GET(imageRoute, c.handler((*CloudAPI).handleGetImage))
+	mux.POST(imageRoute, c.handler((*CloudAPI).handleCreateImageFromMachine))
+	mux.DELETE(imageRoute, c.handler((*CloudAPI).handleDeleteImage))
+
+	// packages
+	packagesRoute := baseRoute + "/packages"
+	mux.GET(packagesRoute, c.handler((*CloudAPI).handleListPackages))
+
+	// package
+	packageRoute := packagesRoute + "/:id"
+	mux.GET(packageRoute, c.handler((*CloudAPI).handleGetPackage))
+
+	// machines
+	machinesRoute := baseRoute + "/machines"
+	mux.GET(machinesRoute, c.handler((*CloudAPI).handleListMachines))
+	mux.HEAD(machinesRoute, c.handler((*CloudAPI).handleCountMachines))
+	mux.POST(machinesRoute, c.handler((*CloudAPI).handleCreateMachine))
+
+	// machine
+	machineRoute := machinesRoute + "/:id"
+	mux.GET(machineRoute, c.handler((*CloudAPI).handleGetMachine))
+	mux.POST(machineRoute, c.handler((*CloudAPI).handleUpdateMachine))
+	mux.DELETE(machineRoute, c.handler((*CloudAPI).handleDeleteMachine))
+
+	// machine metadata
+	machineMetadataRoute := machineRoute + "/metadata"
+	mux.GET(machineMetadataRoute, c.handler((*CloudAPI).handleGetMachineMetadata))
+	mux.POST(machineMetadataRoute, c.handler((*CloudAPI).handleUpdateMachineMetadata))
+	mux.DELETE(machineMetadataRoute, c.handler((*CloudAPI).handleDeleteAllMachineMetadata))
+
+	// machine metadata (individual key)
+	machineMetadataKeyRoute := machineMetadataRoute + "/:key"
+	mux.DELETE(machineMetadataKeyRoute, c.handler((*CloudAPI).handleDeleteMachineMetadata))
+
+	// machine tags
+	machineTagsRoute := machineRoute + "/tags"
+	mux.GET(machineTagsRoute, c.handler((*CloudAPI).handleListMachineTags))
+	mux.POST(machineTagsRoute, c.handler((*CloudAPI).handleAddMachineTags))
+	mux.PUT(machineTagsRoute, c.handler((*CloudAPI).handleReplaceMachineTags))
+	mux.DELETE(machineTagsRoute, c.handler((*CloudAPI).handleDeleteMachineTags))
+
+	// machine tag
+	machineTagRoute := machineTagsRoute + "/:tag"
+	mux.GET(machineTagRoute, c.handler((*CloudAPI).handleGetMachineTag))
+	mux.DELETE(machineTagRoute, c.handler((*CloudAPI).handleDeleteMachineTag))
+
+	// machine firewall rules
+	machineFWRulesRoute := machineRoute + "/fwrules"
+	mux.GET(machineFWRulesRoute, c.handler((*CloudAPI).handleMachineFirewallRules))
+
+	// firewall rules
+	firewallRulesRoute := baseRoute + "/fwrules"
+	mux.GET(firewallRulesRoute, c.handler((*CloudAPI).handleListFirewallRules))
+	mux.POST(firewallRulesRoute, c.handler((*CloudAPI).handleCreateFirewallRule))
+
+	// firewall rule
+	firewallRuleRoute := firewallRulesRoute + "/:id"
+	mux.GET(firewallRuleRoute, c.handler((*CloudAPI).handleGetFirewallRule))
+	mux.POST(firewallRuleRoute, c.handler((*CloudAPI).handleUpdateFirewallRule))
+	mux.DELETE(firewallRuleRoute, c.handler((*CloudAPI).handleDeleteFirewallRule))
+	mux.POST(firewallRuleRoute+"/enable", c.handler((*CloudAPI).handleEnableFirewallRule))
+	mux.POST(firewallRuleRoute+"/disable", c.handler((*CloudAPI).handleDisableFirewallRule))
+
+	// networks
+	networksRoute := baseRoute + "/networks"
+	mux.GET(networksRoute, c.handler((*CloudAPI).handleListNetworks))
+
+	// network
+	networkRoute := networksRoute + "/:id"
+	mux.GET(networkRoute, c.handler((*CloudAPI).handleGetNetwork))
 }

@@ -59,7 +59,7 @@ func (c *Client) ListMachineTags(machineID string) (map[string]string, error) {
 // GetMachineTag returns the value for a single tag on the specified machine.
 // See API docs: http://apidocs.joyent.com/cloudapi/#GetMachineTag
 func (c *Client) GetMachineTag(machineID, tagKey string) (string, error) {
-	var resp string
+	var resp []byte
 	requestHeaders := make(http.Header)
 	requestHeaders.Set("Accept", "text/plain")
 	req := request{
@@ -71,7 +71,7 @@ func (c *Client) GetMachineTag(machineID, tagKey string) (string, error) {
 	if _, err := c.sendRequest(req); err != nil {
 		return "", errors.Newf(err, "failed to get tag %s for machine with id %s", tagKey, machineID)
 	}
-	return resp, nil
+	return string(resp), nil
 }
 
 // DeleteMachineTag deletes a single tag from the specified machine.

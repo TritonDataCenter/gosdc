@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"strings"
+
 	"github.com/joyent/gocommon/client"
 	"github.com/joyent/gocommon/errors"
-	"strings"
 )
 
 // Machine represent a provisioned virtual machines

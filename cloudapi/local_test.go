@@ -20,6 +20,7 @@ import (
 	"github.com/joyent/gosdc/cloudapi"
 	lc "github.com/joyent/gosdc/localservices/cloudapi"
 	"github.com/joyent/gosign/auth"
+	"github.com/julienschmidt/httprouter"
 )
 
 var privateKey []byte
@@ -41,7 +42,7 @@ type LocalTests struct {
 	creds      *auth.Credentials
 	testClient *cloudapi.Client
 	Server     *httptest.Server
-	Mux        *http.ServeMux
+	Mux        *httprouter.Router
 	oldHandler http.Handler
 	cloudapi   *lc.CloudAPI
 }
@@ -50,7 +51,7 @@ func (s *LocalTests) SetUpSuite(c *gc.C) {
 	// Set up the HTTP server.
 	s.Server = httptest.NewServer(nil)
 	s.oldHandler = s.Server.Config.Handler
-	s.Mux = http.NewServeMux()
+	s.Mux = httprouter.New()
 	s.Server.Config.Handler = s.Mux
 
 	// Set up a Joyent CloudAPI service.
@@ -144,7 +145,7 @@ func (s *LocalTests) listMachines(c *gc.C, filter *cloudapi.Filter) {
 
 	// result
 	if !contains {
-		c.Fatalf("Obtained machines [%s] do not contain test machine [%s]", machines, *testMachine)
+		c.Fatalf("Obtained machines [%v] do not contain test machine [%v]", machines, *testMachine)
 	}
 }
 
