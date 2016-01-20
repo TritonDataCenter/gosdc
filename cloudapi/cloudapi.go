@@ -19,7 +19,7 @@ import (
 
 const (
 	// DefaultAPIVersion defines the default version of the Cloud API to use
-	DefaultAPIVersion = "~7.0"
+	DefaultAPIVersion = "~7.3"
 
 	// CloudAPI URL parts
 	apiKeys                    = "keys"
@@ -43,6 +43,8 @@ const (
 	apiFirewallRulesEnable     = "enable"
 	apiFirewallRulesDisable    = "disable"
 	apiNetworks                = "networks"
+	apiFabricVLANs             = "fabrics/default/vlans"
+	apiFabricNetworks          = "networks"
 
 	// CloudAPI actions
 	actionExport    = "export"
