@@ -747,7 +747,7 @@ func (c *CloudAPI) handleUpdateFabricVLAN(w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	return sendJSON(http.StatusOK, vlan, w, r)
+	return sendJSON(http.StatusAccepted, vlan, w, r)
 }
 
 func (c *CloudAPI) handleDeleteFabricVLAN(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
