@@ -42,6 +42,7 @@ type CreateFabricNetworkOpts struct {
 	InternetNAT      bool              `json:"internet_nat"`          // If a NAT zone is provisioned at Gateway IP Address
 }
 
+// ListFabricVLANs lists VLANs
 // See API docs: https://apidocs.joyent.com/cloudapi/#ListFabricVLANs
 func (c *Client) ListFabricVLANs() ([]FabricVLAN, error) {
 	var resp []FabricVLAN
@@ -56,20 +57,22 @@ func (c *Client) ListFabricVLANs() ([]FabricVLAN, error) {
 	return resp, nil
 }
 
+// GetFabricLANs retrieves a single VLAN by ID
 // See API docs: https://apidocs.joyent.com/cloudapi/#GetFabricVLAN
-func (c *Client) GetFabricVLAN(vlanId int16) (*FabricVLAN, error) {
+func (c *Client) GetFabricVLAN(vlanID int16) (*FabricVLAN, error) {
 	var resp FabricVLAN
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiFabricVLANs, strconv.Itoa(int(vlanId))),
+		url:    makeURL(apiFabricVLANs, strconv.Itoa(int(vlanID))),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get fabric VLAN with id %d", vlanId)
+		return nil, errors.Newf(err, "failed to get fabric VLAN with id %d", vlanID)
 	}
 	return &resp, nil
 }
 
+// CreateFabricVLAN creates a new VLAN with the specified options
 // See API docs: https://apidocs.joyent.com/cloudapi/#CreateFabricVLAN
 func (c *Client) CreateFabricVLAN(vlan FabricVLAN) (*FabricVLAN, error) {
 	var resp FabricVLAN
@@ -86,6 +89,7 @@ func (c *Client) CreateFabricVLAN(vlan FabricVLAN) (*FabricVLAN, error) {
 	return &resp, nil
 }
 
+// UpdateFabricVLAN updates a given VLAN with new fields
 // See API docs: https://apidocs.joyent.com/cloudapi/#UpdateFabricVLAN
 func (c *Client) UpdateFabricVLAN(vlan FabricVLAN) (*FabricVLAN, error) {
 	var resp FabricVLAN
@@ -102,72 +106,77 @@ func (c *Client) UpdateFabricVLAN(vlan FabricVLAN) (*FabricVLAN, error) {
 	return &resp, nil
 }
 
+// DeleteFabricVLAN delets a given VLAN as specified by ID
 // See API docs: https://apidocs.joyent.com/cloudapi/#DeleteFabricVLAN
-func (c *Client) DeleteFabricVLAN(vlanId int16) error {
+func (c *Client) DeleteFabricVLAN(vlanID int16) error {
 	req := request{
 		method:         client.DELETE,
-		url:            makeURL(apiFabricVLANs, strconv.Itoa(int(vlanId))),
+		url:            makeURL(apiFabricVLANs, strconv.Itoa(int(vlanID))),
 		expectedStatus: http.StatusNoContent,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to delete fabric VLAN with id %d", vlanId)
+		return errors.Newf(err, "failed to delete fabric VLAN with id %d", vlanID)
 	}
 	return nil
 }
 
+// ListFabricNetworks lists the networks inside the given VLAN
 // See API docs: https://apidocs.joyent.com/cloudapi/#ListFabricNetworks
-func (c *Client) ListFabricNetworks(vlanId int16) ([]FabricNetwork, error) {
+func (c *Client) ListFabricNetworks(vlanID int16) ([]FabricNetwork, error) {
 	var resp []FabricNetwork
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiFabricVLANs, strconv.Itoa(int(vlanId)), apiFabricNetworks),
+		url:    makeURL(apiFabricVLANs, strconv.Itoa(int(vlanID)), apiFabricNetworks),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get list of networks on fabric %d", vlanId)
+		return nil, errors.Newf(err, "failed to get list of networks on fabric %d", vlanID)
 	}
 	return resp, nil
 }
 
+// GetFabricNetwork gets a single network by VLAN and Network IDs
 // See API docs: https://apidocs.joyent.com/cloudapi/#GetFabricNetwork
-func (c *Client) GetFabricNetwork(vlanId int16, networkId string) (*FabricNetwork, error) {
+func (c *Client) GetFabricNetwork(vlanID int16, networkID string) (*FabricNetwork, error) {
 	var resp FabricNetwork
 	req := request{
 		method: client.GET,
-		url:    makeURL(apiFabricVLANs, strconv.Itoa(int(vlanId)), apiFabricNetworks, networkId),
+		url:    makeURL(apiFabricVLANs, strconv.Itoa(int(vlanID)), apiFabricNetworks, networkID),
 		resp:   &resp,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to get fabric network %s on vlan %d", networkId, vlanId)
+		return nil, errors.Newf(err, "failed to get fabric network %s on vlan %d", networkID, vlanID)
 	}
 	return &resp, nil
 }
 
+// CreateFabricNetwork creates a new fabric network
 // See API docs: https://apidocs.joyent.com/cloudapi/#CreateFabricNetwork
-func (c *Client) CreateFabricNetwork(vlanId int16, opts CreateFabricNetworkOpts) (*FabricNetwork, error) {
+func (c *Client) CreateFabricNetwork(vlanID int16, opts CreateFabricNetworkOpts) (*FabricNetwork, error) {
 	var resp FabricNetwork
 	req := request{
 		method:         client.POST,
-		url:            makeURL(apiFabricVLANs, strconv.Itoa(int(vlanId)), apiFabricNetworks),
+		url:            makeURL(apiFabricVLANs, strconv.Itoa(int(vlanID)), apiFabricNetworks),
 		reqValue:       opts,
 		resp:           &resp,
 		expectedStatus: http.StatusCreated,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return nil, errors.Newf(err, "failed to create fabric network %s on vlan %d", opts.Name, vlanId)
+		return nil, errors.Newf(err, "failed to create fabric network %s on vlan %d", opts.Name, vlanID)
 	}
 	return &resp, nil
 }
 
+// DeleteFabricNetwork deletes an existing fabric network
 // See API docs: https://apidocs.joyent.com/cloudapi/#DeleteFabricNetwork
-func (c *Client) DeleteFabricNetwork(vlanId int16, networkId string) error {
+func (c *Client) DeleteFabricNetwork(vlanID int16, networkID string) error {
 	req := request{
 		method:         client.DELETE,
-		url:            makeURL(apiFabricVLANs, strconv.Itoa(int(vlanId)), apiFabricNetworks, networkId),
+		url:            makeURL(apiFabricVLANs, strconv.Itoa(int(vlanID)), apiFabricNetworks, networkID),
 		expectedStatus: http.StatusNoContent,
 	}
 	if _, err := c.sendRequest(req); err != nil {
-		return errors.Newf(err, "failed to delete fabric network %s on vlan %d", networkId, vlanId)
+		return errors.Newf(err, "failed to delete fabric network %s on vlan %d", networkID, vlanID)
 	}
 	return nil
 }
