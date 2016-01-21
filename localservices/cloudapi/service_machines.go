@@ -141,13 +141,25 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, met
 		PrimaryIP: publicIP,
 		Networks:  mNetworks,
 	}
-	c.machines = append(
-		c.machines,
-		&machine{
-			Machine: newMachine,
-			NICs:    map[string]*cloudapi.NIC{},
-		},
-	)
+
+	nics := map[string]*cloudapi.NIC{}
+	for i, _ := range mNetworks {
+		mac, err := localservices.NewMAC()
+		if err != nil {
+			return nil, err
+		}
+
+		nics[mac] = &cloudapi.NIC{
+			IP:      fmt.Sprintf("10.88.88.%d", i),
+			MAC:     mac,
+			Primary: i == 0,
+			Netmask: "255.255.255.0",
+			Gateway: "10.88.88.2",
+			State:   cloudapi.NICStateRunning,
+		}
+	}
+
+	c.machines = append(c.machines, &machine{newMachine, nics})
 
 	return &newMachine, nil
 }
