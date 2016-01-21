@@ -37,6 +37,13 @@ type CloudAPI struct {
 	snapshots     map[string][]cloudapi.Snapshot
 	firewallRules []*cloudapi.FirewallRule
 	networks      []cloudapi.Network
+	fabricVLANs   map[int16]*fabricVLAN
+}
+
+// fabricNetwork is a container for a fabric network and it's associated VLANs
+type fabricVLAN struct {
+	cloudapi.FabricVLAN
+	Networks map[string]*cloudapi.FabricNetwork `json:"-"`
 }
 
 // New makes a new *CloudAPI service with the given information
@@ -56,6 +63,7 @@ func New(serviceURL, userAccount string) *CloudAPI {
 		machineFw     = map[string]bool{}
 		snapshots     = map[string][]cloudapi.Snapshot{}
 		firewallRules []*cloudapi.FirewallRule
+		fabricVLANs   = map[int16]*fabricVLAN{}
 	)
 
 	cloudapiService := &CloudAPI{
@@ -66,6 +74,7 @@ func New(serviceURL, userAccount string) *CloudAPI {
 		machineFw:     machineFw,
 		snapshots:     snapshots,
 		firewallRules: firewallRules,
+		fabricVLANs:   fabricVLANs,
 		networks: []cloudapi.Network{
 			{Id: "123abc4d-0011-aabb-2233-ccdd4455", Name: "Test-Joyent-Public", Public: true},
 			{Id: "456def0a-33ff-7f8e-9a0b-33bb44cc", Name: "Test-Joyent-Private", Public: false},

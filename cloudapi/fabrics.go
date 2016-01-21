@@ -57,7 +57,7 @@ func (c *Client) ListFabricVLANs() ([]FabricVLAN, error) {
 	return resp, nil
 }
 
-// GetFabricLANs retrieves a single VLAN by ID
+// GetFabricLAN retrieves a single VLAN by ID
 // See API docs: https://apidocs.joyent.com/cloudapi/#GetFabricVLAN
 func (c *Client) GetFabricVLAN(vlanID int16) (*FabricVLAN, error) {
 	var resp FabricVLAN
