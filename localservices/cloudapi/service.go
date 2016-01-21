@@ -32,12 +32,17 @@ type CloudAPI struct {
 	keys          []cloudapi.Key
 	packages      []cloudapi.Package
 	images        []cloudapi.Image
-	machines      []*cloudapi.Machine
+	machines      []*machine
 	machineFw     map[string]bool
 	snapshots     map[string][]cloudapi.Snapshot
 	firewallRules []*cloudapi.FirewallRule
 	networks      []cloudapi.Network
 	fabricVLANs   map[int16]*fabricVLAN
+}
+
+type machine struct {
+	cloudapi.Machine
+	NICs map[string]*cloudapi.NIC `json:"-"`
 }
 
 // fabricNetwork is a container for a fabric network and it's associated VLANs
@@ -59,7 +64,7 @@ func New(serviceURL, userAccount string) *CloudAPI {
 
 	var (
 		keys          []cloudapi.Key
-		machines      []*cloudapi.Machine
+		machines      []*machine
 		machineFw     = map[string]bool{}
 		snapshots     = map[string][]cloudapi.Snapshot{}
 		firewallRules []*cloudapi.FirewallRule
