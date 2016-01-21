@@ -19,8 +19,7 @@ func (c *CloudAPI) getFabricWrapper(vlanID int16) (*fabricVLAN, error) {
 
 // ListFabricVLANs lists VLANs
 func (c *CloudAPI) ListFabricVLANs() ([]cloudapi.FabricVLAN, error) {
-	out := make([]cloudapi.FabricVLAN, len(c.fabricVLANs))
-
+	out := []cloudapi.FabricVLAN{}
 	for _, vlan := range c.fabricVLANs {
 		out = append(out, vlan.FabricVLAN)
 	}
@@ -82,7 +81,7 @@ func (c *CloudAPI) ListFabricNetworks(vlanID int16) ([]cloudapi.FabricNetwork, e
 		return nil, err
 	}
 
-	out := make([]cloudapi.FabricNetwork, len(vlan.Networks))
+	out := []cloudapi.FabricNetwork{}
 	for _, network := range vlan.Networks {
 		out = append(out, *network)
 	}
