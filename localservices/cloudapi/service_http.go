@@ -681,6 +681,160 @@ func (c *CloudAPI) handleGetNetwork(w http.ResponseWriter, r *http.Request, para
 	return sendJSON(http.StatusOK, network, w, r)
 }
 
+// Fabrics + VLANs and Networks
+
+func (c *CloudAPI) handleListFabricVLANs(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	vlans, err := c.ListFabricVLANs()
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, vlans, w, r)
+}
+
+func (c *CloudAPI) handleCreateFabricVLAN(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
+	}
+
+	var opts cloudapi.FabricVLAN
+	if err = json.Unmarshal(body, &opts); err != nil {
+		return err
+	}
+
+	vlan, err := c.CreateFabricVLAN(opts)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusCreated, vlan, w, r)
+}
+
+func (c *CloudAPI) handleGetFabricVLAN(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	vlan, err := c.GetFabricVLAN(int16(id))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, vlan, w, r)
+}
+
+func (c *CloudAPI) handleUpdateFabricVLAN(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
+	}
+
+	var opts cloudapi.FabricVLAN
+	if err = json.Unmarshal(body, &opts); err != nil {
+		return err
+	}
+
+	vlan, err := c.UpdateFabricVLAN(opts)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, vlan, w, r)
+}
+
+func (c *CloudAPI) handleDeleteFabricVLAN(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	err = c.DeleteFabricVLAN(int16(id))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+func (c *CloudAPI) handleListFabricNetworks(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	networks, err := c.ListFabricNetworks(int16(id))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, networks, w, r)
+}
+
+func (c *CloudAPI) handleCreateFabricNetwork(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
+	}
+
+	var opts cloudapi.CreateFabricNetworkOpts
+	if err = json.Unmarshal(body, &opts); err != nil {
+		return err
+	}
+
+	network, err := c.CreateFabricNetwork(int16(id), opts)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusCreated, network, w, r)
+}
+
+func (c *CloudAPI) handleGetFabricNetwork(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	network, err := c.GetFabricNetwork(int16(id), params.ByName("network"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, network, w, r)
+}
+
+func (c *CloudAPI) handleDeleteFabricNetwork(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	err = c.DeleteFabricNetwork(int16(id), params.ByName("network"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
+// Error responses
+
 type NotFound struct{}
 
 func (NotFound) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -788,4 +942,25 @@ func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
 	// network
 	networkRoute := networksRoute + "/:id"
 	mux.GET(networkRoute, c.handler((*CloudAPI).handleGetNetwork))
+
+	// fabric VLANs
+	fabricVLANsRoute := baseRoute + "/fabrics/:fabric/vlans"
+	mux.GET(fabricVLANsRoute, c.handler((*CloudAPI).handleListFabricVLANs))
+	mux.POST(fabricVLANsRoute, c.handler((*CloudAPI).handleCreateFabricVLAN))
+
+	// fabric VLAN
+	fabricVLANRoute := fabricVLANsRoute + "/:id"
+	mux.GET(fabricVLANRoute, c.handler((*CloudAPI).handleGetFabricVLAN))
+	mux.PUT(fabricVLANRoute, c.handler((*CloudAPI).handleUpdateFabricVLAN))
+	mux.DELETE(fabricVLANRoute, c.handler((*CloudAPI).handleDeleteFabricVLAN))
+
+	// fabric VLAN networks
+	fabricVLANNetworksRoute := fabricVLANRoute + "/networks"
+	mux.GET(fabricVLANNetworksRoute, c.handler((*CloudAPI).handleListFabricNetworks))
+	mux.POST(fabricVLANNetworksRoute, c.handler((*CloudAPI).handleCreateFabricNetwork))
+
+	// fabric VLAN network
+	fabricVLANNetworkRoute := fabricVLANNetworksRoute + "/:network"
+	mux.GET(fabricVLANNetworkRoute, c.handler((*CloudAPI).handleGetFabricNetwork))
+	mux.DELETE(fabricVLANNetworkRoute, c.handler((*CloudAPI).handleDeleteFabricNetwork))
 }
