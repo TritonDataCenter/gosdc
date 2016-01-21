@@ -45,6 +45,7 @@ const (
 	apiNetworks                = "networks"
 	apiFabricVLANs             = "fabrics/default/vlans"
 	apiFabricNetworks          = "networks"
+	apiNICs                    = "nics"
 
 	// CloudAPI actions
 	actionExport    = "export"

@@ -42,7 +42,8 @@ type CloudAPI struct {
 
 type machine struct {
 	cloudapi.Machine
-	NICs map[string]*cloudapi.NIC `json:"-"`
+	NICs        map[string]*cloudapi.NIC `json:"-"`
+	NetworkNICs map[string]string        `json:"-"`
 }
 
 // fabricNetwork is a container for a fabric network and it's associated VLANs

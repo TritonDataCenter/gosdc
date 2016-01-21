@@ -557,6 +557,60 @@ func (c *CloudAPI) handleGetMachineTag(w http.ResponseWriter, r *http.Request, p
 	return nil
 }
 
+// NICs
+
+func (c *CloudAPI) handleListNICs(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	nics, err := c.ListNICs(params.ByName("id"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, nics, w, r)
+}
+
+func (c *CloudAPI) handleGetNIC(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	nic, err := c.GetNIC(params.ByName("id"), params.ByName("mac"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusOK, nic, w, r)
+}
+
+type addNICOptions struct {
+	Network string `json:"network"`
+}
+
+func (c *CloudAPI) handleAddNIC(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	opts := new(addNICOptions)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return ErrBadRequest
+	}
+	if err = json.Unmarshal(body, opts); err != nil {
+		return err
+	}
+
+	nic, err := c.AddNIC(params.ByName("id"), opts.Network)
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusCreated, nic, w, r)
+}
+
+func (c *CloudAPI) handleRemoveNIC(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	err := c.RemoveNIC(params.ByName("id"), params.ByName("mac"))
+	if err != nil {
+		return err
+	}
+
+	return sendJSON(http.StatusNoContent, nil, w, r)
+}
+
 // firewall rules
 
 func (c *CloudAPI) handleListFirewallRules(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
@@ -921,6 +975,16 @@ func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
 	// machine firewall rules
 	machineFWRulesRoute := machineRoute + "/fwrules"
 	mux.GET(machineFWRulesRoute, c.handler((*CloudAPI).handleMachineFirewallRules))
+
+	// machine NICs
+	machineNICsRoute := machineRoute + "/nics"
+	mux.GET(machineNICsRoute, c.handler((*CloudAPI).handleListNICs))
+	mux.POST(machineNICsRoute, c.handler((*CloudAPI).handleAddNIC))
+
+	// machine NIC
+	machineNICRoute := machineNICsRoute + "/:mac"
+	mux.GET(machineNICRoute, c.handler((*CloudAPI).handleGetNIC))
+	mux.DELETE(machineNICRoute, c.handler((*CloudAPI).handleRemoveNIC))
 
 	// firewall rules
 	firewallRulesRoute := baseRoute + "/fwrules"
