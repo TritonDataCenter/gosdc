@@ -33,7 +33,6 @@ type CloudAPI struct {
 	packages      []cloudapi.Package
 	images        []cloudapi.Image
 	machines      []*machine
-	machineFw     map[string]bool
 	snapshots     map[string][]cloudapi.Snapshot
 	firewallRules []*cloudapi.FirewallRule
 	networks      []cloudapi.Network
@@ -66,7 +65,6 @@ func New(serviceURL, userAccount string) *CloudAPI {
 	var (
 		keys          []cloudapi.Key
 		machines      []*machine
-		machineFw     = map[string]bool{}
 		snapshots     = map[string][]cloudapi.Snapshot{}
 		firewallRules []*cloudapi.FirewallRule
 		fabricVLANs   = map[int16]*fabricVLAN{}
@@ -77,7 +75,6 @@ func New(serviceURL, userAccount string) *CloudAPI {
 		packages:      initPackages(),
 		images:        initImages(),
 		machines:      machines,
-		machineFw:     machineFw,
 		snapshots:     snapshots,
 		firewallRules: firewallRules,
 		fabricVLANs:   fabricVLANs,
