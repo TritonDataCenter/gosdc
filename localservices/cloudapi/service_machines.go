@@ -22,7 +22,7 @@ func (c *CloudAPI) ListMachines(filters map[string]string) ([]*cloudapi.Machine,
 		for k, f := range filters {
 			// check if valid filter
 			if contains(machinesFilters, k) {
-				machines := []*cloudapi.Machine{}
+				machines := []*machine{}
 				// filter from availableMachines and add to machines
 				for _, m := range availableMachines {
 					if k == "name" && m.Name == f {
@@ -51,7 +51,12 @@ func (c *CloudAPI) ListMachines(filters map[string]string) ([]*cloudapi.Machine,
 		}
 	}
 
-	return availableMachines, nil
+	out := make([]*cloudapi.Machine, len(availableMachines))
+	for i, machine := range availableMachines {
+		out[i] = &machine.Machine
+	}
+
+	return out, nil
 }
 
 // CountMachines returns a count of machines the double knows about
@@ -63,8 +68,7 @@ func (c *CloudAPI) CountMachines() (int, error) {
 	return len(c.machines), nil
 }
 
-// GetMachine gets a single machine by ID from the double
-func (c *CloudAPI) GetMachine(machineID string) (*cloudapi.Machine, error) {
+func (c *CloudAPI) getMachineWrapper(machineID string) (*machine, error) {
 	if err := c.ProcessFunctionHook(c, machineID); err != nil {
 		return nil, err
 	}
@@ -76,6 +80,16 @@ func (c *CloudAPI) GetMachine(machineID string) (*cloudapi.Machine, error) {
 	}
 
 	return nil, fmt.Errorf("Machine %s not found", machineID)
+}
+
+// GetMachine gets a single machine by ID from the double
+func (c *CloudAPI) GetMachine(machineID string) (*cloudapi.Machine, error) {
+	wrapper, err := c.getMachineWrapper(machineID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &wrapper.Machine, nil
 }
 
 // CreateMachine creates a new machine in the double. It will be running immediately.
@@ -111,7 +125,7 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, met
 
 	publicIP := generatePublicIPAddress()
 
-	newMachine := &cloudapi.Machine{
+	newMachine := cloudapi.Machine{
 		Id:        machineID,
 		Name:      name,
 		Type:      mImg.Type,
@@ -127,9 +141,29 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, met
 		PrimaryIP: publicIP,
 		Networks:  mNetworks,
 	}
-	c.machines = append(c.machines, newMachine)
 
-	return newMachine, nil
+	nics := map[string]*cloudapi.NIC{}
+	nicNetworks := map[string]string{}
+	for i, network := range mNetworks {
+		mac, err := localservices.NewMAC()
+		if err != nil {
+			return nil, err
+		}
+
+		nics[mac] = &cloudapi.NIC{
+			IP:      fmt.Sprintf("10.88.88.%d", i),
+			MAC:     mac,
+			Primary: i == 0,
+			Netmask: "255.255.255.0",
+			Gateway: "10.88.88.2",
+			State:   cloudapi.NICStateRunning,
+		}
+		nicNetworks[mac] = network
+	}
+
+	c.machines = append(c.machines, &machine{newMachine, nics, nicNetworks})
+
+	return &newMachine, nil
 }
 
 // StopMachine changes a machine's status to "stopped"

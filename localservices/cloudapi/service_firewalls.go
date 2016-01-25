@@ -123,5 +123,10 @@ func (c *CloudAPI) ListFirewallRuleMachines(fwRuleID string) ([]*cloudapi.Machin
 		return nil, err
 	}
 
-	return c.machines, nil
+	out := make([]*cloudapi.Machine, len(c.machines))
+	for i, machine := range c.machines {
+		out[i] = &machine.Machine
+	}
+
+	return out, nil
 }
