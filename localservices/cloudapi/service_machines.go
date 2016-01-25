@@ -283,7 +283,12 @@ func (c *CloudAPI) EnableFirewallMachine(machineID string) error {
 		return err
 	}
 
-	c.machineFw[machineID] = true
+	machine, err := c.GetMachine(machineID)
+	if err != nil {
+		return err
+	}
+
+	machine.FirewallEnabled = true
 
 	return nil
 }
@@ -294,7 +299,12 @@ func (c *CloudAPI) DisableFirewallMachine(machineID string) error {
 		return err
 	}
 
-	c.machineFw[machineID] = false
+	machine, err := c.GetMachine(machineID)
+	if err != nil {
+		return err
+	}
+
+	machine.FirewallEnabled = false
 
 	return nil
 }

@@ -13,22 +13,23 @@ import (
 
 // Machine represent a provisioned virtual machines
 type Machine struct {
-	Id        string            // Unique identifier for the image
-	Name      string            // Machine friendly name
-	Type      string            // Machine type, one of 'smartmachine' or 'virtualmachine'
-	State     string            // Current state of the machine
-	Dataset   string            // The dataset URN the machine was provisioned with. For new images/datasets this value will be the dataset id, i.e, same value than the image attribute
-	Memory    int               // The amount of memory the machine has (in Mb)
-	Disk      int               // The amount of disk the machine has (in Gb)
-	IPs       []string          // The IP addresses the machine has
-	Metadata  map[string]string // Map of the machine metadata, e.g. authorized-keys
-	Tags      map[string]string // Map of the machine tags
-	Created   string            // When the machine was created
-	Updated   string            // When the machine was updated
-	Package   string            // The name of the package used to create the machine
-	Image     string            // The image id the machine was provisioned with
-	PrimaryIP string            // The primary (public) IP address for the machine
-	Networks  []string          // The network IDs for the machine
+	Id              string            // Unique identifier for the image
+	Name            string            // Machine friendly name
+	Type            string            // Machine type, one of 'smartmachine' or 'virtualmachine'
+	State           string            // Current state of the machine
+	Dataset         string            // The dataset URN the machine was provisioned with. For new images/datasets this value will be the dataset id, i.e, same value than the image attribute
+	Memory          int               // The amount of memory the machine has (in Mb)
+	Disk            int               // The amount of disk the machine has (in Gb)
+	IPs             []string          // The IP addresses the machine has
+	Metadata        map[string]string // Map of the machine metadata, e.g. authorized-keys
+	Tags            map[string]string // Map of the machine tags
+	Created         string            // When the machine was created
+	Updated         string            // When the machine was updated
+	Package         string            // The name of the package used to create the machine
+	Image           string            // The image id the machine was provisioned with
+	PrimaryIP       string            // The primary (public) IP address for the machine
+	Networks        []string          // The network IDs for the machine
+	FirewallEnabled bool              // whether or not the firewall is enabled
 }
 
 // Equals compares two machines. Ignores state and timestamps.
