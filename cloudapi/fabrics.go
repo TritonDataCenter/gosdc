@@ -15,19 +15,19 @@ type FabricVLAN struct {
 }
 
 type FabricNetwork struct {
-	Id               string            `json:"id"`                 // Unique identifier for network
-	Name             string            `json:"name"`               // Network name
-	Public           bool              `json:"public"`             // Whether or not this is an RFC1918 network
-	Fabric           bool              `json:"fabric"`             // Whether this network is on a fabric
-	Description      string            `json:"description"`        // Optional description of network
-	Subnet           string            `json:"subnet"`             // CIDR formatted string describing network
-	ProvisionStartIp string            `json:"provision_start_ip"` // First IP on the network that can be assigned
-	ProvisionEndIp   string            `json:"provision_end_ip"`   // Last assignable IP on the network
-	Gateway          string            `json:"gateway"`            // Optional Gateway IP
-	Resolvers        []string          `json:"resolvers"`          // Array of IP addresses for resolvers
-	Routes           map[string]string `json:"routes"`             // Map of CIDR block to Gateway IP Address
-	InternetNAT      bool              `json:"internet_nat"`       // If a NAT zone is provisioned at Gateway IP Address
-	VLANId           int16             `json:"vlan_id"`            // VLAN network is on
+	Id               string            `json:"id"`                  // Unique identifier for network
+	Name             string            `json:"name"`                // Network name
+	Public           bool              `json:"public"`              // Whether or not this is an RFC1918 network
+	Fabric           bool              `json:"fabric"`              // Whether this network is on a fabric
+	Description      string            `json:"description"`         // Optional description of network
+	Subnet           string            `json:"subnet"`              // CIDR formatted string describing network
+	ProvisionStartIp string            `json:"provision_start_ip"`  // First IP on the network that can be assigned
+	ProvisionEndIp   string            `json:"provision_end_ip"`    // Last assignable IP on the network
+	Gateway          string            `json:"gateway"`             // Optional Gateway IP
+	Resolvers        []string          `json:"resolvers,omitempty"` // Array of IP addresses for resolvers
+	Routes           map[string]string `json:"routes,omitempty"`    // Map of CIDR block to Gateway IP Address
+	InternetNAT      bool              `json:"internet_nat"`        // If a NAT zone is provisioned at Gateway IP Address
+	VLANId           int16             `json:"vlan_id"`             // VLAN network is on
 }
 
 type CreateFabricNetworkOpts struct {
@@ -37,7 +37,7 @@ type CreateFabricNetworkOpts struct {
 	ProvisionStartIp string            `json:"provision_start_ip"`    // First IP on the network that can be assigned
 	ProvisionEndIp   string            `json:"provision_end_ip"`      // Last assignable IP on the network
 	Gateway          string            `json:"gateway,omitempty"`     // Optional Gateway IP
-	Resolvers        []string          `json:"resolvers"`             // Array of IP addresses for resolvers
+	Resolvers        []string          `json:"resolvers,omitempty"`   // Array of IP addresses for resolvers
 	Routes           map[string]string `json:"routes,omitempty"`      // Map of CIDR block to Gateway IP Address
 	InternetNAT      bool              `json:"internet_nat"`          // If a NAT zone is provisioned at Gateway IP Address
 }
