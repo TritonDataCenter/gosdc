@@ -24,6 +24,7 @@ type NIC struct {
 	Netmask string   `json:"netmask"` // IPv4 netmask
 	Gateway string   `json:"gateway"` // IPv4 gateway
 	State   NICState `json:"state"`   // Describes the state of the NIC (e.g. provisioning, running, or stopped)
+	Network string   `json:"network"` // Network ID this NIC is attached to
 }
 
 type addNICOptions struct {
