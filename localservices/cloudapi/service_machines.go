@@ -157,6 +157,7 @@ func (c *CloudAPI) CreateMachine(name, pkg, image string, networks []string, met
 			Netmask: "255.255.255.0",
 			Gateway: "10.88.88.2",
 			State:   cloudapi.NICStateRunning,
+			Network: network,
 		}
 		nicNetworks[mac] = network
 	}

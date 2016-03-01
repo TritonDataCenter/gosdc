@@ -70,6 +70,7 @@ func (c *CloudAPI) AddNIC(machineID, networkID string) (*cloudapi.NIC, error) {
 		Netmask: "255.255.255.0",
 		Gateway: "10.88.88.2",
 		State:   cloudapi.NICStateRunning,
+		Network: networkID,
 	}
 	machine.Updated = time.Now().Format("2013-11-26T19:47:13.448Z")
 	machine.Networks = append(machine.Networks, networkID)
