@@ -7,6 +7,7 @@ import (
 	"github.com/joyent/gocommon/errors"
 )
 
+// NICState represents the state of a NIC
 type NICState string
 
 var (
@@ -15,6 +16,7 @@ var (
 	NICStateStopped      NICState = "stopped"
 )
 
+// NIC represents a NIC on a machine
 type NIC struct {
 	IP      string   `json:"ip"`      // NIC's IPv4 Address
 	MAC     string   `json:"mac"`     // NIC's MAC address
@@ -31,7 +33,7 @@ type addNICOptions struct {
 // ListNICs lists all the NICs on a machine belonging to a given account
 // See API docs: https://apidocs.joyent.com/cloudapi/#ListNics
 func (c *Client) ListNICs(machineID string) ([]NIC, error) {
-	resp := make([]NIC, 0)
+	var resp []NIC
 	req := request{
 		method: client.GET,
 		url:    makeURL(apiMachines, machineID, apiNICs),
