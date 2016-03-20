@@ -14,7 +14,6 @@ import (
 
 	"github.com/joyent/gocommon/client"
 	jh "github.com/joyent/gocommon/http"
-	"github.com/juju/loggo"
 )
 
 const (
@@ -57,9 +56,6 @@ const (
 	actionEnableFw  = "enable_firewall"
 	actionDisableFw = "disable_firewall"
 )
-
-// Logger for this package
-var Logger = loggo.GetLogger("gosdc.cloudapi")
 
 // Client provides a means to access the Joyent CloudAPI
 type Client struct {
