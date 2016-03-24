@@ -21,7 +21,7 @@ func (s *LocalTests) TestListImages(c *gc.C) {
 		c.Check(img.Requirements, gc.FitsTypeOf, map[string]interface{}{"key": "value"})
 		c.Check(img.Homepage, gc.FitsTypeOf, string(""))
 		c.Check(img.PublishedAt, gc.FitsTypeOf, string(""))
-		c.Check(img.Public, gc.FitsTypeOf, string(""))
+		c.Check(img.Public, gc.FitsTypeOf, bool(true))
 		c.Check(img.State, gc.FitsTypeOf, string(""))
 		c.Check(img.Tags, gc.FitsTypeOf, map[string]string{"key": "value"})
 		c.Check(img.EULA, gc.FitsTypeOf, string(""))
@@ -45,7 +45,7 @@ func (s *LocalTests) TestListImagesWithFilter(c *gc.C) {
 		c.Check(img.Requirements, gc.FitsTypeOf, map[string]interface{}{"key": "value"})
 		c.Check(img.Homepage, gc.FitsTypeOf, string(""))
 		c.Check(img.PublishedAt, gc.FitsTypeOf, string(""))
-		c.Check(img.Public, gc.FitsTypeOf, string(""))
+		c.Check(img.Public, gc.FitsTypeOf, bool(true))
 		c.Check(img.State, gc.FitsTypeOf, string(""))
 		c.Check(img.Tags, gc.FitsTypeOf, map[string]string{"key": "value"})
 		c.Check(img.EULA, gc.FitsTypeOf, string(""))
@@ -68,7 +68,7 @@ func (s *LocalTests) TestGetImage(c *gc.C) {
 		Description: "Test SmartOS image (32 bit)",
 		Homepage:    "http://test.joyent.com/Standard_Instance",
 		PublishedAt: "2014-01-08T17:42:31Z",
-		Public:      "true",
+		Public:      true,
 		State:       "active",
 	})
 }

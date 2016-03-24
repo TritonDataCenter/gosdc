@@ -27,7 +27,7 @@ func (c *CloudAPI) ListImages(filters map[string]string) ([]cloudapi.Image, erro
 						imgs = append(imgs, i)
 					} else if k == "version" && i.Version == f {
 						imgs = append(imgs, i)
-					} else if k == "public" && i.Public == f {
+					} else if k == "public" && fmt.Sprintf("%v", i.Public) == f {
 						imgs = append(imgs, i)
 					} else if k == "state" && i.State == f {
 						imgs = append(imgs, i)
