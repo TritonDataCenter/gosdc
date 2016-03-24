@@ -19,7 +19,7 @@ type Image struct {
 	Requirements map[string]interface{} // Minimum requirements for provisioning a machine with this image, e.g. 'password' indicates that a password must be provided
 	Homepage     string                 // URL for a web page including detailed information for this image (new in API version 7.0)
 	PublishedAt  string                 `json:"published_at"` // Time this image has been made publicly available (new in API version 7.0)
-	Public       string                 // Indicates if the image is publicly available (new in API version 7.1)
+	Public       bool                   // Indicates if the image is publicly available (new in API version 7.1)
 	State        string                 // Current image state. One of 'active', 'unactivated', 'disabled', 'creating', 'failed' (new in API version 7.1)
 	Tags         map[string]string      // A map of key/value pairs that allows clients to categorize images by any given criteria (new in API version 7.1)
 	EULA         string                 // URL of the End User License Agreement (EULA) for the image (new in API version 7.1)

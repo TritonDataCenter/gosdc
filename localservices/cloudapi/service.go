@@ -148,7 +148,7 @@ func initImages() []cloudapi.Image {
 			Description: "Test SmartOS image (32 bit)",
 			Homepage:    "http://test.joyent.com/Standard_Instance",
 			PublishedAt: "2014-01-08T17:42:31Z",
-			Public:      "true",
+			Public:      true,
 			State:       "active",
 		},
 		{
@@ -160,7 +160,7 @@ func initImages() []cloudapi.Image {
 			Description: "Test SmartOS image (64 bit)",
 			Homepage:    "http://test.joyent.com/Standard_Instance",
 			PublishedAt: "2014-01-08T17:43:16Z",
-			Public:      "true",
+			Public:      true,
 			State:       "active",
 		},
 		{
@@ -171,7 +171,7 @@ func initImages() []cloudapi.Image {
 			Type:        "virtualmachine",
 			Description: "Test CentOS 6.4 image (64 bit)",
 			PublishedAt: "2014-01-02T10:58:31Z",
-			Public:      "true",
+			Public:      true,
 			State:       "active",
 		},
 		{
@@ -182,7 +182,7 @@ func initImages() []cloudapi.Image {
 			Type:        "virtualmachine",
 			Description: "Test Ubuntu 12.04 image (64 bit)",
 			PublishedAt: "2014-01-20T16:12:31Z",
-			Public:      "true",
+			Public:      true,
 			State:       "active",
 		},
 		{
@@ -193,7 +193,7 @@ func initImages() []cloudapi.Image {
 			Type:        "virtualmachine",
 			Description: "Test Ubuntu 12.10 image (64 bit)",
 			PublishedAt: "2014-01-20T16:12:31Z",
-			Public:      "true",
+			Public:      true,
 			State:       "active",
 		},
 		{
@@ -204,7 +204,7 @@ func initImages() []cloudapi.Image {
 			Type:        "virtualmachine",
 			Description: "Test Ubuntu 13.04 image (64 bit)",
 			PublishedAt: "2014-01-20T16:12:31Z",
-			Public:      "true",
+			Public:      true,
 			State:       "active",
 		},
 	}
