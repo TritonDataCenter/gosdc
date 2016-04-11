@@ -10,6 +10,8 @@
 package cloudapi_test
 
 import (
+	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -30,7 +32,7 @@ type LiveTests struct {
 }
 
 func (s *LiveTests) SetUpTest(c *gc.C) {
-	client := client.NewClient(s.creds.SdcEndpoint.URL, cloudapi.DefaultAPIVersion, s.creds, cloudapi.Logger)
+	client := client.NewClient(s.creds.SdcEndpoint.URL, cloudapi.DefaultAPIVersion, s.creds, log.New(os.Stderr, "", log.LstdFlags))
 	c.Assert(client, gc.NotNil)
 	s.testClient = cloudapi.New(client)
 	c.Assert(s.testClient, gc.NotNil)
@@ -281,7 +283,7 @@ func (s *LiveTests) TestListImages(c *gc.C) {
 		c.Check(img.Requirements, gc.FitsTypeOf, map[string]interface{}{"key": "value"})
 		c.Check(img.Homepage, gc.FitsTypeOf, string(""))
 		c.Check(img.PublishedAt, gc.FitsTypeOf, string(""))
-		c.Check(img.Public, gc.FitsTypeOf, string(""))
+		c.Check(img.Public, gc.FitsTypeOf, bool(true))
 		c.Check(img.State, gc.FitsTypeOf, string(""))
 		c.Check(img.Tags, gc.FitsTypeOf, map[string]string{"key": "value"})
 		c.Check(img.EULA, gc.FitsTypeOf, string(""))
@@ -305,7 +307,7 @@ func (s *LiveTests) TestListImagesWithFilter(c *gc.C) {
 		c.Check(img.Requirements, gc.FitsTypeOf, map[string]interface{}{"key": "value"})
 		c.Check(img.Homepage, gc.FitsTypeOf, string(""))
 		c.Check(img.PublishedAt, gc.FitsTypeOf, string(""))
-		c.Check(img.Public, gc.FitsTypeOf, string(""))
+		c.Check(img.Public, gc.FitsTypeOf, bool(true))
 		c.Check(img.State, gc.FitsTypeOf, string(""))
 		c.Check(img.Tags, gc.FitsTypeOf, map[string]string{"key": "value"})
 		c.Check(img.EULA, gc.FitsTypeOf, string(""))

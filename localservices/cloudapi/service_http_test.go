@@ -390,7 +390,7 @@ func (s *CloudAPIHTTPSuite) TestGetImage(c *gc.C) {
 	c.Assert(expected.Type, gc.Equals, "virtualmachine")
 	c.Assert(expected.Description, gc.Equals, "Test Ubuntu 12.04 image (64 bit)")
 	c.Assert(expected.PublishedAt, gc.Equals, "2014-01-20T16:12:31Z")
-	c.Assert(expected.Public, gc.Equals, "true")
+	c.Assert(expected.Public, gc.Equals, true)
 	c.Assert(expected.State, gc.Equals, "active")
 }
 
