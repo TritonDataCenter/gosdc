@@ -74,7 +74,7 @@ func (s *LocalTests) TearDownSuite(c *gc.C) {
 }
 
 func (s *LocalTests) SetUpTest(c *gc.C) {
-	client := client.NewClient(s.creds.SdcEndpoint.URL, cloudapi.DefaultAPIVersion, s.creds, &cloudapi.Logger)
+	client := client.NewClient(s.creds.SdcEndpoint.URL, cloudapi.DefaultAPIVersion, s.creds, cloudapi.Logger)
 	c.Assert(client, gc.NotNil)
 	s.testClient = cloudapi.New(client)
 	c.Assert(s.testClient, gc.NotNil)
