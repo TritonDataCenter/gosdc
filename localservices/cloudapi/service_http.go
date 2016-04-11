@@ -887,6 +887,15 @@ func (c *CloudAPI) handleDeleteFabricNetwork(w http.ResponseWriter, r *http.Requ
 	return sendJSON(http.StatusNoContent, nil, w, r)
 }
 
+// ListServices handler
+
+func (c *CloudAPI) handleGetServices(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+	services := map[string]string{
+		"cloudapi": "https://us-west-1.api.example.com",
+	}
+	return sendJSON(http.StatusOK, services, w, r)
+}
+
 // Error responses
 
 type NotFound struct{}
@@ -1027,4 +1036,8 @@ func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
 	fabricVLANNetworkRoute := fabricVLANNetworksRoute + "/:network"
 	mux.GET(fabricVLANNetworkRoute, c.handler((*CloudAPI).handleGetFabricNetwork))
 	mux.DELETE(fabricVLANNetworkRoute, c.handler((*CloudAPI).handleDeleteFabricNetwork))
+
+	// services
+	servicesRoute := baseRoute + "/services"
+	mux.GET(servicesRoute, c.handler((*CloudAPI).handleGetServices))
 }
