@@ -674,3 +674,11 @@ func (s *CloudAPIHTTPSuite) TestGetNetwork(c *gc.C) {
 		Description: "",
 	})
 }
+
+func (s *CloudAPIHTTPSuite) TestGetServices(c *gc.C) {
+	//var expected cloudapi.ServiceInstance
+	resp, err := s.sendRequest("GET", path.Join(testUserAccount, "services"), nil, nil)
+	c.Assert(err, gc.IsNil)
+	c.Assert(resp.StatusCode, gc.Equals, http.StatusOK)
+
+}
