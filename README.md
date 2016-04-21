@@ -26,37 +26,45 @@ you'll need a few things:
 3. your private key material
 4. the cloud endpoint you want to use (for example
    `https://us-east-1.api.joyentcloud.com`)
-   
+
 Given these four pieces of information, you can initialize a client with the
-following (N.B. error handling is glossed over in this example for the sake of
-brevity):
+following:
 
 ```go
 package main
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
+
 	"github.com/joyent/gocommon/client"
 	"github.com/joyent/gosdc/cloudapi"
 	"github.com/joyent/gosign/auth"
-    "io/ioutil"
 )
 
-func client(key, keyId, account, endpoint string) *cloudapi.Client {
-	keyData, _ := ioutil.ReadFile(key)
-	auth, _ := auth.NewAuth(account, string(keyData), "rsa-sha256")
+func client(key, keyId, account, endpoint string) (*cloudapi.Client, error) {
+	keyData, err := ioutil.ReadFile(key)
+	if err != nil {
+		return nil, err
+	}
+	userAuth, err := auth.NewAuth(account, string(keyData), "rsa-sha256")
+	if err != nil {
+		return nil, err
+	}
 
 	creds := &auth.Credentials{
-    	UserAuthentication: auth,
+		UserAuthentication: auth,
 		SdcKeyId:           keyId,
-		SdcEndpoint:        endpoint,
+		SdcEndpoint:        auth.Endpoint{URL: endpoint},
 	}
-    
+
 	return cloudapi.New(client.NewClient(
-		endpoint,
+		creds.SdcEndpoint.URL,
 		cloudapi.DefaultAPIVersion,
 		creds,
-		&cloudapi.Logger
-	))
+		log.New(os.Stderr, "", log.LstdFlags),
+	)), nil
 }
 ```
 
