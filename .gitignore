@@ -23,3 +23,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# make sure we don't commit test key
+test_key.id_rsa*
