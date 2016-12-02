@@ -92,6 +92,71 @@ After creating a client, you can manipulate resources in the following ways:
 | Networks | | [GetNetwork](https://godoc.org/github.com/joyent/gosdc/cloudapi#Client.GetNetwork), [ListNetworks](https://godoc.org/github.com/joyent/gosdc/cloudapi#Client.ListNetworks) | | | |
 | Packages | | [GetPackage](https://godoc.org/github.com/joyent/gosdc/cloudapi#Client.GetPackage), [ListPackages](https://godoc.org/github.com/joyent/gosdc/cloudapi#Client.ListPackages) | | | |
 
+
+## Contributing
+
+Report bugs and request features using [GitHub Issues](https://github.com/joyent/gosdc/issues), or contribute code via a [GitHub Pull Request](https://github.com/joyent/gosdc/pulls). Changes will be code reviewed before merging. In the near future, automated tests will be run, but in the meantime please `go fmt`, `go lint`, and test all contributions.
+
+
+## Developing
+
+This library assumes a Go development environment setup based on [How to Write Go Code](https://golang.org/doc/code.html). Your GOPATH environment variable should be pointed at your workspace directory.
+
+You can now use `go get github.com/joyent/gosdc` to install the repository to the correct location, but if you are intending on contributing back a change you may want to consider cloning the repository via git yourself. This way you can have a single source tree for all Joyent Go projects with each repo having two remotes -- your own fork on GitHub and the upstream origin.
+
+For example if your GOPATH is `~/src/joyent/go` and you're working on multiple repos then that directory tree might look like:
+
+```
+~/src/joyent/go/
+|_ pkg/
+|_ src/
+   |_ github.com
+      |_ joyent
+         |_ gocommon
+         |_ gomanta
+         |_ gosdc
+         |_ gosign
+```
+
+### Recommended Setup
+
+```
+$ mkdir -p ${GOPATH}/src/github.com/joyent
+$ cd ${GOPATH}/src/github.com/joyent
+$ git clone git@github.com:<yourname>/gosdc.git
+
+# fetch dependencies
+$ git clone git@github.com:<yourname>/gocommon.git
+$ git clone git@github.com:<yourname>/gosign.git
+$ go get -v -t ./...
+
+# add upstream remote
+$ cd gosdc
+$ git remote add upstream git@github.com:joyent/gosdc.git
+$ git remote -v
+origin  git@github.com:<yourname>/gosdc.git (fetch)
+origin  git@github.com:<yourname>/gosdc.git (push)
+upstream        git@github.com:joyent/gosdc.git (fetch)
+upstream        git@github.com:joyent/gosdc.git (push)
+```
+
+### Run Tests
+
+You can run the tests either locally or against live Triton. If you want to run the tests locally you'll want to generate an SSH key and pass the appropriate flags to the test harness as shown below.
+
+```
+cd ${GOPATH}/src/github.com/joyent/gosdc
+ssh-keygen -b 2048 -C "Testing Key" -f test_key.id_rsa -t rsa -P ""
+env KEY_NAME=`pwd`/test_key.id_rsa LIVE=false go test ./...
+```
+
+### Build the Library
+
+```
+cd ${GOPATH}/src/github.com/joyent/gosdc
+go build ./...
+```
+
 ## License
 
 gosdc is licensed under the Mozilla Public License Version 2.0, a copy of which
