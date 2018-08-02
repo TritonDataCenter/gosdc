@@ -1,3 +1,5 @@
+:no_entry: [DEPRECATED] Active at [github.com/joyent/triton-go](github.com/joyent/triton-go) :no_entry:
+
 # gosdc
 
 [![wercker status](https://app.wercker.com/status/349ee60ed0afffd99d2b2b354ada5938/s/master "wercker status")](https://app.wercker.com/project/bykey/349ee60ed0afffd99d2b2b354ada5938)
