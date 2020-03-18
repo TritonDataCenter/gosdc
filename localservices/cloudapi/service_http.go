@@ -898,16 +898,12 @@ func (c *CloudAPI) handleGetServices(w http.ResponseWriter, r *http.Request, par
 
 // Error responses
 
-type NotFound struct{}
-
-func (NotFound) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func customNotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte("Resource Not Found"))
 }
 
-type MethodNotAllowed struct{}
-
-func (MethodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func customMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusMethodNotAllowed)
 	w.Write([]byte("Method is not allowed"))
 }
@@ -916,8 +912,8 @@ func (MethodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (c *CloudAPI) SetupHTTP(mux *httprouter.Router) {
 	baseRoute := "/" + c.ServiceInstance.UserAccount
 
-	mux.NotFound = NotFound{}
-	mux.MethodNotAllowed = MethodNotAllowed{}
+	mux.NotFound = http.HandlerFunc(customNotFound)
+	mux.MethodNotAllowed = http.HandlerFunc(customMethodNotAllowed)
 
 	// keys
 	keysRoute := baseRoute + "/keys"
